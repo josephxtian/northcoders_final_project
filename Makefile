@@ -51,9 +51,9 @@ black:
 coverage:
 	$(call execute_in_env, $(PIP) install coverage)
 
-## Set up dev requirements (bandit, black & coverage)
+## Set up requirements (bandit, black, coverage and requirements)
 dev-setup: bandit black coverage
-	$(call execute_in_env, $(PIP) install -r ./dev-requirements.txt)
+	$(call execute_in_env, $(PIP) install -r ./requirements.txt)
 
 # Build / Run
 
