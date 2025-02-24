@@ -1,24 +1,44 @@
 # copied from previous work
 
-resource "aws_lambda_function" "s3_file_reader" {
-    function_name = "${var.lambda_name}"
-    s3_bucket = aws_s3_bucket.code_bucket.bucket
-    s3_key = "s3_file_reader/function.zip"
-    role = aws_iam_role.lambda_role.arn
-    handler = "reader.lambda_handler"
-    runtime = "python3.9"
-}
-
 data "archive_file" "lambda" {
-  type        = "zip"
-  source_file = "${path.module}/../src/file_reader/reader.py"
-  output_path = "${path.module}/../function.zip"
+  type             = "zip"
+  output_file_mode = "0666"
+  source_file      = "${path.module}/../src/quotes.py"
+  output_path      = "${path.module}/../function.zip"
 }
 
-resource "aws_lambda_permission" "allow_s3" {
-  action = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.s3_file_reader.function_name
-  principal = "s3.amazonaws.com"
-  source_arn = aws_s3_bucket.data_bucket.arn
-  source_account = data.aws_caller_identity.current.account_id
+
+/*
+The quotes.py lambda will need access to the dependencies in the layer folder to run the code in AWS, these dependencies are bundled into a .zip file and added to the s3 in s3.tf 
+*/
+
+data "archive_file" "layer" {
+  type = "zip"
+  output_file_mode = "0666"
+  source_dir = "${path.module}/../layer/"
+  output_path = "${path.module}/../layer.zip"
 }
+
+
+resource "aws_lambda_layer_version" "requests_layer" {
+  layer_name          = "requests_layer"
+  compatible_runtimes = [var.python_runtime]
+  s3_bucket           = aws_s3_bucket.code_bucket.bucket
+  # this should be the code_bucket you provision in s3.tf
+  s3_key              = "2-cloud/layer.zip"
+  # this should be the key for your layer_code in s3.tf
+}
+
+resource "aws_lambda_function" "quote_handler" {
+  #TODO: Provision the lambda
+  function_name = "quote_handler"
+  runtime = "python3.12"
+  role = aws_iam_role.lambda_role.arn
+  handler = "lambda_name.handler"
+  s3_bucket = aws_s3_bucket.code_bucket.bucket
+  s3_key = "2-cloud/function.zip"
+
+  timeout = 60
+  #TODO: Connect the layer which is outlined above
+}
+
