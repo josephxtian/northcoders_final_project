@@ -1,3 +1,7 @@
 requests>=2.31.0
 pytest
 pytest-testdox
+boto3
+moto[all]
+pg8000
+
