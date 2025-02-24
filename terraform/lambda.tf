@@ -1,8 +1,9 @@
 # copied from previous work
 
+# lambda function to import from database and put into ingress s3 bucket
 resource "aws_lambda_function" "s3_file_reader" {
     function_name = "${var.lambda_name}"
-    s3_bucket = aws_s3_bucket.code_bucket.bucket
+    s3_bucket = aws_s3_bucket.ingestion_bucket.bucket
     s3_key = "s3_file_reader/function.zip"
     role = aws_iam_role.lambda_role.arn
     handler = "reader.lambda_handler"
