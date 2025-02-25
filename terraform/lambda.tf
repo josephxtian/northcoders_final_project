@@ -6,8 +6,6 @@ data "archive_file" "lambda" {
   source_file      = "${path.module}/../src/quotes.py"
   output_path      = "${path.module}/../function.zip"
 }
-
-
 /*
 The quotes.py lambda will need access to the dependencies in the layer folder to run the code in AWS, these dependencies are bundled into a .zip file and added to the s3 in s3.tf 
 */
