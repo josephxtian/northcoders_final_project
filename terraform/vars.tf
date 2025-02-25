@@ -1,3 +1,7 @@
+variable "ec2-instance" {
+  type    = string
+  default = "i-03e485bc335b9a58a"
+
 variable "data_ingestion_bucket" {
   type    = string
   default = ""
