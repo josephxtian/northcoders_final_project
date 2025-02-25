@@ -1,17 +1,31 @@
-variable "data_ingress_bucket" {
+variable "data_ingestion_bucket" {
   type    = string
   default = ""
 }
 
-
-variable "data_process_bucket" {
+variable "data_processed_bucket" {
   type    = string
   default = ""
 }
 
-variable "lambda_name" {
+variable "lambda_code_bucket" {
   type    = string
   default = ""
+}
+
+variable "lambda_1_name" {
+  type    = string
+  default = "raw_data_to_ingestion_bucket"
+}
+
+variable "lambda_2_name" {
+  type    = string
+  default = "ingestion_to_processed_bucket"
+}
+
+variable "lambda_3_name" {
+  type    = string
+  default = "processed_bucket_to_warehouse"
 }
 
 variable "python_runtime" {

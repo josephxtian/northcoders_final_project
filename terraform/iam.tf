@@ -1,3 +1,4 @@
+/*
 # ---------------
 # Lambda IAM Role 
 # ---------------
@@ -47,4 +48,29 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_write_policy_attachment" {
   role = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.s3_write_policy.arn
 }
+*/
 
+# Lambda
+# https://spacelift.io/blog/terraform-aws-lambda
+# Create IAM role
+# Add IAM policies - check the below policies might be needed
+#   logs:CreateLogGroup
+#   logs:CreateLogStream
+#   logs:PutLogEvents
+# Add IAM policies to the IAM role
+
+
+resource "aws_iam_role" "lambda_1_role" {
+  name_prefix        = "role-${var.lambda_1_name}"
+  assume_role_policy = data.aws_iam_policy_document.trust_policy.json # check this
+}
+
+resource "aws_iam_role" "lambda_2_role" {
+  name_prefix        = "role-${var.lambda_2_name}"
+  assume_role_policy = data.aws_iam_policy_document.trust_policy.json # check this
+}
+
+resource "aws_iam_role" "lambda_3_role" {
+  name_prefix        = "role-${var.lambda_3_name}"
+  assume_role_policy = data.aws_iam_policy_document.trust_policy.json # check this
+}
