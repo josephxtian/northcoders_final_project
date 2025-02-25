@@ -21,10 +21,9 @@ provider "aws" {
       ProjectName = "Northcoders final project"
       Team = "Data Engineering"
       DeployedFrom = "Terraform"
-      Repository = "Northcoders_final_Project_25"
+      Repository = "northcoders_final_project_25"
       CostCentre = "DE"
       Environment = "dev"
-      RetentionDate = "2024-05-31"
     }
   }
 }
