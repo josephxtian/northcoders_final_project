@@ -73,7 +73,7 @@ resource "aws_cloudwatch_metric_alarm" "ec2-cpu-alarm" {
   threshold                 = 80
   alarm_description         = "This metric monitors ec2 cpu utilization reaches 80%"
   dimensions = {
-    InstanceId = var.ec2_instance
+    InstanceId = var.ec2-instance
   }
   alarm_actions = [aws_sns_topic.ec2_alerts.arn] 
   insufficient_data_actions = []
