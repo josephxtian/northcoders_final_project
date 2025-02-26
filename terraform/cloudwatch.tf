@@ -63,26 +63,26 @@ resource "aws_cloudwatch_dashboard" "demo-dashboard" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "ec2-cpu-alarm" {
-  alarm_name                = "terraform-ec2-cpu-alarm"
-  comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 2
-  metric_name               = "CPUUtilization"
-  namespace                 = "AWS/EC2"
-  period                    = 120
-  statistic                 = "Average"
-  threshold                 = 80
-  alarm_description         = "This metric monitors ec2 cpu utilization reaches 80%"
+  alarm_name          = "terraform-ec2-cpu-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 120
+  statistic           = "Average"
+  threshold           = 80
+  alarm_description   = "This metric monitors ec2 cpu utilization reaches 80%"
   dimensions = {
     InstanceId = var.ec2-instance
   }
-  alarm_actions = [aws_sns_topic.ec2_alerts.arn] 
+  alarm_actions             = [aws_sns_topic.ec2_alerts.arn]
   insufficient_data_actions = []
 
 }
 
 resource "aws_sns_topic" "ec2_alerts" {
   name = "ec2-high-cpu-alert"
-} 
+}
 
 resource "aws_cloudwatch_log_group" "Lambda_log" {
   name = "Lambda_Ingestion"
