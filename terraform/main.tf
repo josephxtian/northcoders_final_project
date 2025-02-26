@@ -7,8 +7,8 @@ terraform {
     }
   }
 backend "s3" {
-    bucket = ""
-    key = ""
+    bucket = "tf-state-bucket-nc-project-352446"
+    key = "terraform.tfstate"
     region = "eu-west-2"
   }
 }

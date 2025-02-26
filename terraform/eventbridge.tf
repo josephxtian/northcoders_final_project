@@ -4,6 +4,7 @@ resource "aws_scheduler_schedule" "lambda_ingestion_schedule" {
 
   flexible_time_window {
     mode = "OFF"
+
   }
 
   schedule_expression = "rate(5 minutes)"
@@ -11,8 +12,9 @@ resource "aws_scheduler_schedule" "lambda_ingestion_schedule" {
   target {
     arn      = aws_lambda_function.lambda_raw_data_to_ingestion_bucket.arn
     role_arn = aws_iam_role.eventbridge_scheduler_role.arn
+
   }
-}
+
 
 resource "aws_cloudwatch_event_rule" "invoke_step_function" {
   name        = "invoke-step-function"
@@ -60,4 +62,3 @@ resource "aws_cloudwatch_event_target" "invoke_step_function_target" {
   arn       = aws_sfn_state_machine.lambda_1_2_3.arn
   role_arn  = aws_iam_role.eventbridge_to_sfn_role.arn
 }
-

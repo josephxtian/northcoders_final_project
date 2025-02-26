@@ -30,10 +30,15 @@ resource "aws_sns_topic_subscription" "email_subscription" {
   endpoint  = "benjstevenmorgan@gmail.com"  # Left as my email for now. Should this be user's email?
 }
 
+
 # logs metric for major errors in lambda log
 resource "aws_cloudwatch_log_metric_filter" "error_metric_filter" {
   name           = "major-error-filter"
   log_group_name = aws_cloudwatch_log_group.lambda_log.name 
+
+resource "aws_cloudwatch_log_group" "lambda_log" {
+  name = "Lambda_Ingestion"
+
 
   pattern = "{ $.level = \"ERROR\" }"  # Detects logs where level is "ERROR"
 
@@ -43,6 +48,7 @@ resource "aws_cloudwatch_log_metric_filter" "error_metric_filter" {
     value     = "1"
   }
 }
+
 
 # alarm for lambda errors
 resource "aws_cloudwatch_metric_alarm" "error_alarm" {
@@ -76,3 +82,9 @@ resource "aws_cloudwatch_metric_alarm" "step_function_failure_alarm" {
     StateMachineArn = aws_sfn_state_machine.lambda_1_2_3.arn
   }
 }
+
+resource "aws_cloudwatch_log_stream" "lambda_log_stream" {
+  name           = "Lambda_log_stream"
+  log_group_name = aws_cloudwatch_log_group.lambda_log.name
+}
+
