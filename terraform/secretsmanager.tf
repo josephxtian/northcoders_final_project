@@ -17,15 +17,15 @@ resource "aws_db_instance" "totesys_db" {
   engine              = "postgres"
   instance_class      = "db.t3.micro"
   allocated_storage   = 20 #minimum for postgres is 10
-  username           = local.db_credentials["user"]
-  password           = local.db_credentials["password"]
-  port               = local.db_credentials["port"]
+  username            = local.db_credentials["user"]
+  password            = local.db_credentials["password"]
+  port                = local.db_credentials["port"]
   publicly_accessible = false
 }
 
 resource "aws_iam_role" "rds_access_role" {
-    name = "rds-access-role"
-    assume_role_policy = jsonencode({
+  name = "rds-access-role"
+  assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
       Action = "sts:AssumeRole"
@@ -39,16 +39,16 @@ resource "aws_iam_role" "rds_access_role" {
 
 #policy to grant access to secrets manager for RDS
 resource "aws_iam_policy" "rds_access_policy" {
-    name        = "rds-secrets-access-policy"
-    description = "Allows access to RDS credentials stored in AWS Secrets Manager"
-  
-    policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [{
-        Effect   = "Allow"
-        Action   = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret"
+  name        = "rds-secrets-access-policy"
+  description = "Allows access to RDS credentials stored in AWS Secrets Manager"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
       ]
       Resource = data.aws_secretsmanager_secret.db_credentials.arn
     }]
