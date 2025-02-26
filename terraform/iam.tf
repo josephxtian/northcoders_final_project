@@ -3,6 +3,7 @@
 
 # GLOBALLY USED
 # allows roles to access each service with credentials
+# indentifiers are called 'service principal name'
 data "aws_iam_policy_document" "lambda_assume_role" {
   statement {
     effect = "Allow"
