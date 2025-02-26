@@ -4,6 +4,7 @@ resource "aws_scheduler_schedule" "lambda_ingestion_schedule" {
 
   flexible_time_window {
     mode = "OFF"
+
   }
 
   schedule_expression = "rate(5 minutes)"
@@ -11,52 +12,53 @@ resource "aws_scheduler_schedule" "lambda_ingestion_schedule" {
   target {
     arn      = aws_lambda_function.lambda_raw_data_to_ingestion_bucket.arn
     role_arn = aws_iam_role.eventbridge_scheduler_role.arn
+
   }
+
+
+resource "aws_cloudwatch_event_rule" "invoke_step_function" {
+  name        = "invoke-step-function"
+  description = "Triggers Step Function based on event"
+
+  schedule_expression = "rate(10 minutes)"  
 }
 
+resource "aws_iam_role" "eventbridge_to_sfn_role" {
+  name = "EventBridgeInvokeStepFunctionRole"
 
-# module "eventbridge_bus" {
-#   source  = "terraform-aws-modules/eventbridge/aws"
-#   bus_name = "my-bus"
-# }
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "events.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
 
-# module "eventbridge_rules" {
-#   source  = "terraform-aws-modules/eventbridge/aws"
-  
-#   bus_name = module.eventbridge_bus.bus_name
-#   create_bus = false  # Bus is created by `eventbridge_bus`
+resource "aws_iam_policy" "eventbridge_to_sfn_policy" {
+  name        = "EventBridgeInvokeStepFunctionPolicy"
+  description = "Allows EventBridge to start Step Functions"
 
-#   rules = {
-#     logs = {
-#       description   = "Capture log data"
-#       event_pattern = jsonencode({ "source" : ["my.app.logs"] })
-#     }
-#     crons = {
-#       description         = "Trigger for a Lambda"
-#       schedule_expression = "rate(15 minutes)"
-#     }
-#   }
-# }
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = "states:StartExecution"
+      Resource = aws_sfn_state_machine.lambda_1_2_3.arn
+    }]
+  })
+}
 
-# module "eventbridge_targets" {
-#   source  = "terraform-aws-modules/eventbridge/aws"
-  
-#   bus_name = module.eventbridge_bus.bus_name
-#   create_bus = false  
+resource "aws_iam_role_policy_attachment" "eventbridge_to_sfn_attachment" {
+  role       = aws_iam_role.eventbridge_to_sfn_role.name
+  policy_arn = aws_iam_policy.eventbridge_to_sfn_policy.arn
+}
 
-#   targets = {
-#     logs = [
-#       {
-#         name = "send-logs-to-cloudwatch"
-#         arn  = aws_cloudwatch_log_group.lambda_log.arn 
-#       }
-#     ]
-#     crons = [
-#       {
-#         name  = "lambda-loves-cron"
-#         arn   = aws_lambda_function.lambda_raw_data_to_ingestion_bucket.arn
-#         input = jsonencode({"job": "cron-by-rate"})
-#       }
-#     ]
-#   }
-# }
+resource "aws_cloudwatch_event_target" "invoke_step_function_target" {
+  rule      = aws_cloudwatch_event_rule.invoke_step_function.name
+  arn       = aws_sfn_state_machine.lambda_1_2_3.arn
+  role_arn  = aws_iam_role.eventbridge_to_sfn_role.arn
+}
