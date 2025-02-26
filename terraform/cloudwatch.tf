@@ -84,7 +84,7 @@ resource "aws_sns_topic" "ec2_alerts" {
   name = "ec2-high-cpu-alert"
 } 
 
-resource "aws_cloudwatch_log_group" "Lambda_log" {
+resource "aws_cloudwatch_log_group" "lambda_log" {
   name = "Lambda_Ingestion"
 
   tags = {
@@ -93,7 +93,7 @@ resource "aws_cloudwatch_log_group" "Lambda_log" {
   }
 }
 
-resource "aws_cloudwatch_log_stream" "Lambda_log_stream" {
+resource "aws_cloudwatch_log_stream" "lambda_log_stream" {
   name           = "Lambda_log_stream"
-  log_group_name = aws_cloudwatch_log_group.Lambda_log.name
+  log_group_name = aws_cloudwatch_log_group.lambda_log.name
 }

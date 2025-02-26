@@ -1,20 +1,21 @@
 variable "ec2-instance" {
   type    = string
-  default = "i-03e485bc335b9a58a"
+  default = "ec2_instance_for_cloudwatch"
+}
 
 variable "data_ingestion_bucket" {
   type    = string
-  default = ""
+  default = "ingestion-bucket"
 }
 
 variable "data_processed_bucket" {
   type    = string
-  default = ""
+  default = "processed-bucket"
 }
 
 variable "lambda_code_bucket" {
   type    = string
-  default = ""
+  default = "lambda-code-store-bucket"
 }
 
 variable "lambda_1_name" {
