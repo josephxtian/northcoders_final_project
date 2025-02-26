@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
     effect = "Allow"
     principals {
       type        = "Service"
-      identifiers = ["lambda.amazonaws.com","s3.amazonaws.com","scheduler.amazonaws.com"]
+      identifiers = ["lambda.amazonaws.com","s3.amazonaws.com","scheduler.amazonaws.com","states.amazonaws.com"]
     }
     actions = ["sts:AssumeRole"]
   }
@@ -189,4 +189,41 @@ resource "aws_iam_policy" "iam_scheduling_policy" {
 resource "aws_iam_role_policy_attachment" "iam_event_scheduler_attachment" {
   role = aws_iam_role.eventbridge_scheduler_role.name
   policy_arn = aws_iam_policy.iam_scheduling_policy.arn
+}
+
+# STATE FUNCTION - FOR LAMBDA 2 FLOW
+# invokes lambda_2 and reports to cloudwatch
+data "aws_iam_policy_document" "iam_step_function_execution_doc" {
+  statement {
+    actions = [
+      "lambda:InvokeFunction",
+      "cloudwatch:CreateLogDelivery",
+      "cloudwatch:GetLogDelivery",
+      "cloudwatch:UpdateLogDelivery",
+      "cloudwatch:DeleteLogDelivery",
+      "cloudwatch:ListLogDeliveries",
+      "cloudwatch:PutResourcePolicy",
+      "cloudwatch:DescribeResourcePolicies",
+      "cloudwatch:DescribeLogGroups"
+    ]
+    resources = [
+      "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}"
+    ]
+  }
+}
+
+resource "aws_iam_role" "step_function_execution_role" {
+  name_prefix         = "role-step-function-execution"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
+
+resource "aws_iam_policy" "iam_step_function_policy" {
+  name = "step_function_policy"
+  path = "/"
+  policy = data.aws_iam_policy_document.iam_step_function_execution_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "iam_event_scheduler_attachment" {
+  role = aws_iam_role.step_function_execution_role.name
+  policy_arn = aws_iam_policy.iam_step_function_policy.arn
 }

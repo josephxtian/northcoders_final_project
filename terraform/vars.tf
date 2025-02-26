@@ -33,6 +33,11 @@ variable "lambda_3_name" {
   default = "processed_bucket_to_warehouse"
 }
 
+variable "step_function_name" {
+  type    = string
+  default = "step_function"
+}
+
 variable "python_runtime" {
   type    = string
   default = "python3.12"
