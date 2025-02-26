@@ -11,8 +11,9 @@ def connect_to_db():
         password=os.getenv("PG_PASSWORD"),
         database=os.getenv("PG_DATABASE"),
         host=os.getenv("PG_HOST"),
-        port=int(os.getenv("PG_PORT"))
+        port=int(os.getenv("PG_PORT")),
     )
+
 
 def close_db_connection(conn):
     conn.close()
