@@ -19,10 +19,17 @@ To build infrastructure
 initialises the terraform workspace and updates the backend file stored manually in the s3 bucket `tf-state-bucket-nc-project-352446`.
 
 #### cloudwatch.tf
+creates a log group allowing lambda and eventbridge to log to cloudwatch
+send emails for lambda errors and step function failures to Ben's email (for now)
+
 #### data.tf
 sets up some commonly used data variables.
 
 #### eventbridge.tf
+attachs a schedule to invoke the step function to feed into lambda 2 every 5 minutes - lambda 2 can then write to
+`nc-project-schedule`
+ingestion bucket if any changes made in rds
+attaches iam policy to evenbtridge that allows lambda to be invoked
 
 #### iam.tf
 creates IAM roles and permissions for lambda, cloudwatch logging, event bridge and statefunction.
