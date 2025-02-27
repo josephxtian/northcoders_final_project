@@ -34,9 +34,8 @@ resource "aws_sns_topic_subscription" "email_subscription" {
 # logs metric for major errors in lambda log
 resource "aws_cloudwatch_log_metric_filter" "error_metric_filter" {
   name           = "major-error-filter"
-  log_group_name = aws_cloudwatch_log_group.lambda_log.name 
-
   pattern = "{ $.level = \"ERROR\" }"  # Detects logs where level is "ERROR"
+  log_group_name = aws_cloudwatch_log_group.lambda_log.name 
 
   metric_transformation {
     name      = "MajorErrorCount"

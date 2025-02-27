@@ -1,4 +1,3 @@
-
 resource "aws_scheduler_schedule" "lambda_ingestion_schedule" {
   name       = "nc-project-schedule"
   group_name = "default"
