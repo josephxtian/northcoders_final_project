@@ -6,6 +6,7 @@ terraform {
       version = "~> 5.0"
     }
   }
+
 backend "s3" {
     bucket = "tf-state-bucket-nc-project-352446"
     key = "terraform.tfstate"
@@ -18,12 +19,12 @@ provider "aws" {
 
   default_tags {
     tags = {
-      ProjectName = "Northcoders final project"
-      Team = "Data Engineering"
+      ProjectName  = "Northcoders final project"
+      Team         = "Data Engineering"
       DeployedFrom = "Terraform"
-      Repository = "northcoders_final_project_25"
-      CostCentre = "DE"
-      Environment = "dev"
+      Repository   = "northcoders_final_project_25"
+      CostCentre   = "DE"
+      Environment  = "dev"
     }
   }
 }

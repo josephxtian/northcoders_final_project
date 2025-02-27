@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_log_group" "lambda_log" {
   name = "Lambda_Ingestion"
-
+  
   tags = {
     Environment = "production"
     Application = "serviceA"
