@@ -223,7 +223,7 @@ resource "aws_iam_policy" "iam_step_function_policy" {
   policy = data.aws_iam_policy_document.iam_step_function_execution_doc.json
 }
 
-resource "aws_iam_role_policy_attachment" "iam_event_scheduler_attachment" {
+resource "aws_iam_role_policy_attachment" "iam_event_step_function_attachment" {
   role = aws_iam_role.step_function_execution_role.name
   policy_arn = aws_iam_policy.iam_step_function_policy.arn
 }
