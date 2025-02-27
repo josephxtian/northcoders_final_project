@@ -27,22 +27,22 @@ resource "aws_s3_bucket" "lambda_code_bucket" {
 
 # upload lambda function 1 object
 resource "aws_s3_object" "lambda_1_code" {
-  bucket = aws_s3_bucket.code_bucket.bucket
-  key    = "index.py"
+  bucket = aws_s3_bucket.lambda_code_bucket.bucket
+  key = "index.py"
   source = "${path.module}/../${var.lambda_1_name}/index.py"
 }
 
 # upload lambda function 2 object
 resource "aws_s3_object" "lambda_2_code" {
-  bucket = aws_s3_bucket.code_bucket.bucket
-  key    = "index.py"
+  bucket = aws_s3_bucket.lambda_code_bucket.bucket
+  key = "index.py"
   source = "${path.module}/../${var.lambda_2_name}/index.py"
 }
 
 # upload lambda function 3 object
 resource "aws_s3_object" "lambda_3_code" {
-  bucket = aws_s3_bucket.code_bucket.bucket
-  key    = "index.py"
+  bucket = aws_s3_bucket.lambda_code_bucket.bucket
+  key = "index.py"
   source = "${path.module}/../${var.lambda_3_name}/index.py"
 }
 

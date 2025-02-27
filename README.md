@@ -1,32 +1,56 @@
-# Northcoders_final_project_25
-Northcoders grad project 
+Northcoders Final project February/March 2025
+==========
 
-8 Steps to success
+# Project Introduction
+This project aims to take information from a tote bag store's database system, format it and organise it into a data warehouse. A dashboard will then use the information from the data warehouse to create summaries to aid business insights.
 
-1. A job scheduler or orchestration process to run the ingestion job and subsequent processes.
-2. An S3 bucket that will act as a "landing zone" for ingested data.
-    1. Set up IAM user
-    2. Set up IAM policies
-    3. Create Ingestion Bucket
-    4. Put data in Bucket
-3. A Python application to check for changes to the database tables and ingest any new or updated data.
-    1. Write python code
-    2. upload to lambda
-    3. Give lambda IAM permissions to s3 bucket
-4. A CloudWatch alert should be generated in the event of a major error - this should be sent to email.
-    1. enable logging for lambda
-    2. set up CloudWatch alarm to trigger email
-5. A second S3 bucket for "processed" data.
-    1. Create processed Bucket in parquet format
-    2. Put data in Bucket
-6. A Python application to transform data landing in the "ingestion" S3 bucket and place the results in the "processed" S3 bucket.
-    1. Write python code
-    2. upload to lambda
-    3. Give lambda IAM permissions to s3 bucket
-7. A Python application that will periodically schedule an update of the data warehouse from the data in S3.
-    1. Write python code
-    2. upload to lambda - set to trigger automatically
-    3. log processes and send an email
-8. Business Insight Dashboard - Analytics phase
-    1. Power BI? / SQL
+# Docs
+## Terraform
+Terraform is used to set up and configure the bulk of AWS infrastructure. All terraform files are stored in the terraform/ directory.
 
+To build infrastructure
+
+    `terraform init`
+    `terraform plan`
+    `terraform apply`
+
+### Files
+#### main.tf
+initialises the terraform workspace and updates the backend file stored manually in the s3 bucket `tf-state-bucket-nc-project-352446`.
+
+#### cloudwatch.tf
+creates a log group allowing lambda and eventbridge to log to cloudwatch
+send emails for lambda errors and step function failures to Ben's email (for now)
+
+#### data.tf
+sets up some commonly used data variables.
+
+#### eventbridge.tf
+attachs a schedule to invoke the step function to feed into lambda 2 every 5 minutes - lambda 2 can then write to
+`nc-project-schedule`
+ingestion bucket if any changes made in rds
+attaches iam policy to evenbtridge that allows lambda to be invoked
+
+#### iam.tf
+creates IAM roles and permissions for lambda, cloudwatch logging, event bridge and statefunction.
+
+#### lambda.tf
+creates three lambda functions and uploads the default test file `index.py` from each of the folders: `raw_data_to_ingestion_bucket`, `ingestion_to_processed_bucket`, `processed_bucket_to_warehouse`
+
+Note the lambda file automatically zips the python code into the folder `python_zips` which is then uploaded to the `lambda-code-store-bucket` s3 bucket for execution via lambda.
+
+#### s3.tf
+creates three s3 buckets 
+`ingestion-bucket` - stores data brought in from raw database with lambda function 1.
+
+`processed-bucket` - stores data which has beeen processed by lambda function 2
+
+`lambda-code-store-bucket` - stores all lambda code executed on AWS.
+
+#### secretsmanager.tf
+
+#### stepfunction.tf
+creates a step function state machine for the lambda 2 workflow. Currently set up in test mode to execute a dummy lambda 2 code. The stepfunction is built from the `pipeline.json` file stored in the terraform directory. To update `pipeline.json` use the code view created in the console based aws statemachine setup and paste it into the file.
+
+#### vars.tf
+directory of variables. Includes python runtime and naming conventions.
