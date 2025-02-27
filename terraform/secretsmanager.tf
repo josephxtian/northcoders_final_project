@@ -1,3 +1,7 @@
+# NOTE the database logins have been put manually onto AWS secrets manager
+# This code can only retrieve from AWS, it does not put anything there.
+# It creates an IAM role and sets permissions to allow RDS to access secrets manager
+
 #this gets the credentials from AWS Secrets Manager
 data "aws_secretsmanager_secret" "db_credentials" {
   name = "totesys/db_credentials"
