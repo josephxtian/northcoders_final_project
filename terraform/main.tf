@@ -6,9 +6,10 @@ terraform {
       version = "~> 5.0"
     }
   }
-  backend "s3" {
-    bucket = ""
-    key    = ""
+
+backend "s3" {
+    bucket = "tf-state-bucket-nc-project-352446"
+    key = "terraform.tfstate"
     region = "eu-west-2"
   }
 }
