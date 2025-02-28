@@ -24,15 +24,15 @@ class TestUploadsDataWithTimeStamp:
             def test_list():
                 return ["address"]
             def test_func(test_list):
-                return [{'address_id': 1,'address_line_1': '6826 Herzog Via', 'last_updated': '2025-02-27 9:13:32' },
-                        {'address_id': 2,'address_line_1': '6827 Herzog Via', 'last_updated': '2025-02-27 10:13:32' },
-                        {'address_id': 3,'address_line_1': '6828 Herzog Via', 'last_updated': '2025-02-27 12:13:32' }]
+                return [{'address_id': 1,'address_line_1': '6826 Herzog Via', 'last_updated': '2024-11-03T14:20:52.187000' },
+                        {'address_id': 2,'address_line_1': '6827 Herzog Via', 'last_updated': '2024-11-03T14:20:52.187000' },
+                        {'address_id': 3,'address_line_1': '6828 Herzog Via', 'last_updated': '2025-11-03T14:20:52.187000' }]
             
             bucket_name = 'test_bucket'
             object_key1 = "address/seed.json"
             object_key2 = "address/2025-02-27 12:13:32.json"
-            file1 = '[{"address_id": 1,"address_line_1": "6826 Herzog Via", "last_updated": "2025-02-27 9:13:32"}]'
-            file2 = '[{"address_id": 2,"address_line_1": "6827 Herzog Via", "last_updated": "2025-02-27 10:13:32"}]'
+            file1 = '[{"address_id": 1,"address_line_1": "6826 Herzog Via", "last_updated": "2024-11-03T14:20:52.187000"}]'
+            file2 = '[{"address_id": 2,"address_line_1": "6827 Herzog Via", "last_updated": "2024-11-03T14:20:52.187000"}]'
             s3_client =boto3.client('s3')
             s3_client.create_bucket(
                 Bucket=bucket_name,
