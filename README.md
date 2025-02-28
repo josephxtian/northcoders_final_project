@@ -49,9 +49,23 @@ creates three s3 buckets
 `lambda-code-store-bucket<random_string>` - stores all lambda code executed on AWS.
 
 #### secretsmanager.tf
+gets the database credentials from AWS secrets manager and stores as a local variable to be used in terraform.
+
+Has policy for read access for secrets manager and attaches the policy to the role.
 
 #### stepfunction.tf
 creates a step function state machine for the lambda 2 workflow. Currently set up in test mode to execute a dummy lambda 2 code. The stepfunction is built from the `pipeline.json` file stored in the terraform directory. To update `pipeline.json` use the code view created in the console based aws statemachine setup and paste it into the file.
 
 #### vars.tf
-directory of variables. Includes python runtime and naming conventions.
+directory of variables. Includes python runtime and naming conventions
+
+
+
+#### s3_read_function.py
+
+Reads data from the ingress bucket and sets as a variable for use in star schema. Currently a test-bucket because lambda 1 is not finalised.
+
+#### password_manager.py
+
+Can be deleted if all is running fine in terraform and buckets
+
