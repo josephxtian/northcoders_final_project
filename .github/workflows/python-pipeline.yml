@@ -36,8 +36,12 @@ jobs:
       run: |
         python -m venv venv
         venv/bin/pip install --upgrade pip
-        venv/bin/pip install flake8 pytest
+        venv/bin/pip install black flake8 pytest
         if [ -f requirements.txt ]; then venv/bin/pip install -r requirements.txt; fi
+
+    - name: Format code with Black
+      run: |
+        black . --check
 
     - name: Lint with flake8
       run: |
