@@ -2,65 +2,49 @@
 # This code can only retrieve from AWS, it does not put anything there.
 # It creates an IAM role and sets permissions to allow RDS to access secrets manager
 
-#this gets the credentials from AWS Secrets Manager
+#Do not need the util function, can delete once this is checked
+
+#this gets the credentials from AWS Secrets Manager (gets arn ect not actual value)
 data "aws_secretsmanager_secret" "db_credentials" {
   name = "totesys/db_credentials"
 }
 
+#gets the latest versiob of the secret 
 data "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = data.aws_secretsmanager_secret.db_credentials.id
 }
 
-#gets secrets value locally 
+#stores secret in local variable for use in terraform
 locals {
   db_credentials = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)
 }
 
-resource "aws_db_instance" "totesys_db" {
-  identifier          = "totesys-db"
-  engine              = "postgres"
-  instance_class      = "db.t3.micro"
-  allocated_storage   = 20 #minimum for postgres is 10
-  username            = local.db_credentials["user"]
-  password            = local.db_credentials["password"]
-  port                = local.db_credentials["port"]
-  publicly_accessible = false
+#this is for debugging purposes
+output "db_credentials" {
+  value = local.db_credentials
+  sensitive = true
 }
 
-resource "aws_iam_role" "rds_access_role" {
-  name = "rds-access-role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "rds.amazonaws.com"
-      }
-    }]
-  })
-}
-
-#policy to grant access to secrets manager for RDS
-resource "aws_iam_policy" "rds_access_policy" {
-  name        = "rds-secrets-access-policy"
-  description = "Allows access to RDS credentials stored in AWS Secrets Manager"
+#gives ccess to read credetnials from secrets manager
+resource "aws_iam_policy" "secrets_access_policy" {
+  name        = "secrets-access-policy"
+  description = "Allows access to database credentials in AWS Secrets Manager"
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow"
+      Effect = "Allow",
       Action = [
         "secretsmanager:GetSecretValue",
         "secretsmanager:DescribeSecret"
-      ]
+      ],
       Resource = data.aws_secretsmanager_secret.db_credentials.arn
     }]
   })
 }
 
-#attach the policy to the role
-resource "aws_iam_role_policy_attachment" "rds_policy_attachment" {
-  role       = aws_iam_role.rds_access_role.name
-  policy_arn = aws_iam_policy.rds_access_policy.arn
+#attaches policy to role
+resource "aws_iam_role_policy_attachment" "attach_secrets_policy" {
+  role = aws_iam_role.lambda_1_role.name
+  policy_arn = aws_iam_policy.secrets_access_policy.arn
 }
