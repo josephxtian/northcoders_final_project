@@ -4,4 +4,4 @@ pytest-testdox
 boto3
 moto[all]
 pg8000
-
+black
