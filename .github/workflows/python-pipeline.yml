@@ -32,12 +32,11 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install dependencies inside virtual environment
+    - name: Install dependencies
       run: |
-        python -m venv venv
-        venv/bin/pip install --upgrade pip
-        venv/bin/pip install black flake8 pytest
-        if [ -f requirements.txt ]; then venv/bin/pip install -r requirements.txt; fi
+        python -m pip install --upgrade pip
+        pip install black flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
     - name: Verify Black Installation
       run: |
