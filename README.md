@@ -41,6 +41,7 @@ Note the lambda file automatically zips the python code into the folder `python_
 
 #### s3.tf
 creates three s3 buckets 
+
 `ingestion-bucket<random_string>` - stores data brought in from raw database with lambda function 1.
 
 `processed-bucket<random_string>` - stores data which has beeen processed by lambda function 2
