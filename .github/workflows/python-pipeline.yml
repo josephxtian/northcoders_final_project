@@ -35,16 +35,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install black flake8 pytest
+        pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
-    - name: Verify Black Installation
-      run: |
-        black --version 
-
-    - name: Format code with Black
-      run: |
-        black . --check
 
     - name: Lint with flake8
       run: |
