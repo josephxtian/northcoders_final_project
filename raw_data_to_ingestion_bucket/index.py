@@ -1,3 +1,4 @@
+
 # from boto3 import client
 # from botocore.exceptions import ClientError
 # from datetime import datetime 
@@ -74,3 +75,13 @@ def lambda_handler(event,context):
 
 # def close_db_connection(conn):
 #     conn.close()
+=======
+import json
+
+def lambda_handler(event, context):
+    # TODO implement
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello World!')
+    }
+
