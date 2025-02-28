@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
 # 0. AWS configuration variables set to the s3 ingestion bucket and variables for db_host, db_name, db_user,db_password
 # 1. read the raw data from the ingestion bucket. Possibly a bot3 client.get
-def transform_fact_data(raw_data, return_dataframe=True):
+def transform_fact_data(raw_data):
     # use pandas to convert raw json data to staging dataframe
 
     
