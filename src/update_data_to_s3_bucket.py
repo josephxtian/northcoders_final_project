@@ -34,18 +34,18 @@ def update_data_to_s3_bucket(s3_client, bucket_name, the_list_of_tables,reformat
             # checking for content in correct format to check which date is newer(bigger)
             #looping through operational data to add files datestamped to list 
             additional_entries = []
-            for data in current_operational_data:
-                data_str = data['last_updated']
-                data_last_update = datetime.strptime(data_str, '%Y-%m-%dT%H:%M:%S.%f')
-                if data_last_update > last_updated_date:
-                    additional_entries.append(data)
+        for data in current_operational_data:
+            data_str = data['last_updated']
+            data_last_update = datetime.strptime(data_str, '%Y-%m-%dT%H:%M:%S.%f')
+            if data_last_update > last_updated_date:
+                additional_entries.append(data)
         # checking if there's addtional entries to add, a file is created with datestamp
-            if additional_entries:
-                current_timestamp = datetime.now()
-                formatted_timestamp = current_timestamp.strftime('%Y-%m-%d %H:%M:%S')
-                object_key = f"{table}/{formatted_timestamp}.json"
-                s3_client.put_object(Bucket=bucket_name,Key=object_key,Body=json.dumps(additional_entries))
-                print("update!")
+        if additional_entries:
+            current_timestamp = datetime.now()
+            formatted_timestamp = current_timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            object_key = f"{table}/{formatted_timestamp}.json"
+            s3_client.put_object(Bucket=bucket_name,Key=object_key,Body=json.dumps(additional_entries))
+            print("update!")
     return f"data has been added to {bucket_name}"
     print("hello")
     return "no updates"
