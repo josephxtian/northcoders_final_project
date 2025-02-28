@@ -36,3 +36,5 @@ def write_to_s3_bucket(s3_client, bucket_name, the_list_of_tables):
 
     except ClientError:
         return {'result': 'FAILURE' ,"message":"file could not be uploaded"}
+    
+write_to_s3_bucket(client("s3"), 'ingestion-bucket20250228065732358000000006' , the_list_of_tables)
