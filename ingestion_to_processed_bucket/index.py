@@ -1,5 +1,8 @@
-def lambda_handler(event,context):
-    message = 'Hello, we\'re in ingestion_to_processed_bucket{} !'.format(event['key1'])
+import json
+
+def lambda_handler(event, context):
+    # TODO implement
     return {
-        'message' : message
+        'statusCode': 200,
+        'body': json.dumps('Hello World!')
     }

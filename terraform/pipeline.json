@@ -7,8 +7,7 @@
         "Resource": "${resource}",
         "Output": "{% $states.result.Payload %}",
         "Arguments": {
-          "FunctionName": "arn:aws:lambda:{aws_region}:{aws_account_number}:function:{function_name}:$LATEST",
-          "Payload": "{% $states.input %}"
+          "FunctionName": "arn:aws:lambda:{aws_region}:{aws_account_number}:function:{function_name}:$LATEST"
         },
         "Retry": [
           {
