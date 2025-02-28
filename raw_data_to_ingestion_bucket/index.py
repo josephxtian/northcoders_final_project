@@ -75,7 +75,7 @@ def lambda_handler(event,context):
 
 # def close_db_connection(conn):
 #     conn.close()
-=======
+
 import json
 
 def lambda_handler(event, context):
