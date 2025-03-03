@@ -123,10 +123,12 @@ data "aws_iam_policy_document" "iam_processed_read_policy_doc" {
   statement {
     actions = [
       "s3:PutObject",
-      "s3:UploadPart"
+      "s3:UploadPart",
+      "s3:GetObject",
+      "s3:ListBucket"
     ]
     resources = [
-      "${aws_s3_bucket.ingestion_bucket.arn}"
+      "${aws_s3_bucket.processed_bucket.arn}"
     ]
   }
   statement {
@@ -204,10 +206,12 @@ data "aws_iam_policy_document" "iam_step_function_execution_doc" {
       "cloudwatch:ListLogDeliveries",
       "cloudwatch:PutResourcePolicy",
       "cloudwatch:DescribeResourcePolicies",
-      "cloudwatch:DescribeLogGroups"
+      "cloudwatch:DescribeLogGroups",
+      "logs:PutLogEvents"
     ]
     resources = [
-      "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}"
+      "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}",
+      "${aws_cloudwatch_log_group.step_function_logs.arn}"
     ]
   }
 }
