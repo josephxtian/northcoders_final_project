@@ -1,14 +1,15 @@
-from src.upload_to_s3_bucket import write_to_s3_bucket, the_list_of_tables
-from src.converts_data_to_json import table_reformat
+from src.upload_to_s3_bucket import write_to_s3_bucket
+from src.connection import connect_to_db, close_db_connection
+from utils.utils_for_ingestion import reformat_data_to_json, list_of_tables
 import pytest
+from unittest.mock import patch, Mock
 import os
 import boto3
 from moto import mock_aws
-from unittest.mock import patch
 from pprint import pprint
 import re
 import json
-
+from pprint import pprint
 
 @pytest.fixture(scope="function", autouse=True)
 def aws_credentials():
@@ -34,7 +35,7 @@ class TestWriteToFile:
                 Bucket="wrong_bucket",
                 CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
                 )
-            res = write_to_s3_bucket(s3_client, bucket_name, the_list_of_tables)
+            res = write_to_s3_bucket(s3_client, bucket_name, list_of_tables, reformat_data_to_json)
         assert res["result"] == "FAILURE"
         assert res["message"] == "file could not be uploaded"
 
@@ -49,7 +50,7 @@ class TestWriteToFile:
                 CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
                 )
             s3_client.put_object(Bucket=bucket_name,Key=object_key,Body=file)
-            res = write_to_s3_bucket(s3_client, bucket_name, the_list_of_tables)
+            res = write_to_s3_bucket(s3_client, bucket_name, list_of_tables, reformat_data_to_json)
 
         assert res == None
 
@@ -61,13 +62,19 @@ class TestWriteToFile:
                 Bucket=bucket_name,
                 CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
                 )
-            res = write_to_s3_bucket(s3_client, bucket_name, the_list_of_tables)
-            print(res)
-            assert s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount'] ==11
-            assert res == 'success - 11 files have been written to test_bucket!'
+            def list_of_tables():
+                return["counterparty"]
+            mock_reformated_data_from_db = Mock()
+            with open('test/test_data/test_data.json','r') as f:
+                data = json.load(f)
+            mock_reformated_data_from_db.return_value = data["counterparty"]
+            res = write_to_s3_bucket(s3_client, bucket_name, list_of_tables, mock_reformated_data_from_db)
+            
+            assert s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount'] ==5  #note - this is 4 json files and one txt
+            assert res == 'success - 1 database tables have been written to test_bucket!'
 
 class TestFileContent:
-    def test_contents_of_file_design_in_s3(self):
+    def test_contents_of_file_test_data_in_s3(self):
         with mock_aws():
             bucket_name = 'test_bucket'
             s3_client = boto3.client('s3')
@@ -76,51 +83,26 @@ class TestFileContent:
                 CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
                 )
     
-            def the_list_of_tables():
-                return ["design"]
-            
-            with patch("src.upload_to_s3_bucket.the_list_of_tables") as mock_choice:
-                mock_choice.return_value = the_list_of_tables
-                
-                write_to_s3_bucket(s3_client, bucket_name, the_list_of_tables)
-            word = "design/seed.json"
-            res = s3_client.get_object(
-                    Bucket=bucket_name,
-                    Key=word)
-        
-            data = res['Body'].read().decode('utf-8') 
-            file_content = json.loads(data)
-            with open("json_data/json-design.json", 'r') as file:
-                expected = json.load(file)["design"]
-
-                # pprint(expected)
-                pprint(file_content)
-            assert file_content == expected
-
-    def test_contents_of_all_files__in_s3(self):
-        with mock_aws():
-            bucket_name = 'test_bucket'
-            s3_client = boto3.client('s3')
-            s3_client.create_bucket(
-                Bucket=bucket_name,
-                CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
-                )
-            
-            table_reformat()
-            write_to_s3_bucket(s3_client, bucket_name, the_list_of_tables)
-
-            for table in the_list_of_tables():
-
-                word = f"{table}/seed.json"
-                res = s3_client.get_object(
-                        Bucket=bucket_name,
-                        Key=word)
-            
+            def list_of_tables():
+                return["counterparty"]
+            mock_reformated_data_from_db = Mock()
+            with open('test/test_data/test_data.json','r') as f:
+                data = json.load(f)
+            mock_reformated_data_from_db.return_value = data["counterparty"]
+            write_to_s3_bucket(s3_client, bucket_name, list_of_tables, mock_reformated_data_from_db)
+            list_of_data_in_s3 = []
+            for i in range(s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount']-1):  #not the last file as that is the txt
+                file_name = s3_client.list_objects_v2(Bucket=bucket_name)["Contents"][i]["Key"]
+                res = s3_client.get_object(Bucket=bucket_name,Key=file_name)
                 data = res['Body'].read().decode('utf-8') 
                 file_content = json.loads(data)
-                with open(f"json_data/json-{table}.json", 'r') as file:
-                    expected = json.load(file)[f"{table}"]
-                   
-                assert file_content == expected
+                list_of_data_in_s3.append(file_content)
+            result = [data for lists in list_of_data_in_s3 for data in lists]
+            print(result)
+            with open('test/test_data/test_data.json','r') as f:
+                expected = json.load(f)["counterparty"]
+
+            assert result == expected
+
            
            
