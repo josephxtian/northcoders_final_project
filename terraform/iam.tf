@@ -39,10 +39,11 @@ data "aws_iam_policy_document" "iam_ingestion_write_policy_doc" {
   statement {
     actions = [
       "s3:PutObject",
-      "s3:UploadPart"
+      "s3:UploadPart",
+      "s3:GetObject"
     ]
     resources = [
-      "${aws_s3_bucket.ingestion_bucket.arn}"
+      "${aws_s3_bucket.ingestion_bucket.arn}/*"
     ]
   }
 }
@@ -67,6 +68,7 @@ resource "aws_iam_role_policy_attachment" "lambda_1_cloudwatch_attachment" {
   role = aws_iam_role.lambda_1_role.name
   policy_arn = aws_iam_policy.iam_cloudwatch_log.arn
 }
+
 
 # LAMBDA 2 - INGESTION TO PROCESSED_BUCKET
 # reads from ingestion_bucket and writes to processed_bucket
