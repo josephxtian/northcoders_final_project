@@ -5,7 +5,7 @@ boto3
 moto[all]
 pg8000
 #<<<<<<< pip_latest_update_to_txt_file
-json
+
 #=======
 python-dotenv
 pandas

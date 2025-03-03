@@ -40,16 +40,35 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
 
+    - name: Set Environment Variables
+      run: |
+        echo "PG_USER=${{ secrets.PG_USER }}" >> $GITHUB_ENV
+        echo "PG_PASSWORD=${{ secrets.PG_PASSWORD }}" >> $GITHUB_ENV
+        echo "PG_DATABASE=${{ secrets.PG_DATABASE }}" >> $GITHUB_ENV
+        echo "PG_HOST=${{ secrets.PG_HOST }}" >> $GITHUB_ENV
+        echo "PG_PORT=${{ secrets.PG_PORT }}" >> $GITHUB_ENV
+
+    - name: Configure AWS Credentials
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: eu-west-2
+      run: aws sts get-caller-identity  #checks if credentials are set correctly
+
+    
     - name: Lint with Flake8
       run: |
         flake8 . --exclude=venv --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --exclude=venv --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-
     - name: Run Tests with pytest
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: eu-west-2
       run: |
         python -m venv venv
         source venv/bin/activate
         pytest
+
