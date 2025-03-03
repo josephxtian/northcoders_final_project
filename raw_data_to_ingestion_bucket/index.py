@@ -119,6 +119,52 @@ def update_data_to_s3_bucket(s3_client, bucket_name, the_list_of_tables,reformat
             s3_client.put_object(Bucket=bucket_name,Key=object_key,Body=json.dumps(additional_entries))
     return f"data has been added to {bucket_name}"
     
+#<<<<<<< pip_latest_update_to_txt_file
+=======
+# def the_list_of_tables():
+#     return [
+#         "address",
+#         "staff",
+#         "department",
+#         "design",
+#         "counterparty",
+#         "sales_order",
+#         "transaction",
+#         "payment",
+#         "purchase_order",
+#         "payment_type",
+#         "currency",
+#     ]
+
+# def reformat_data_to_json(table):
+#     db = connect_to_db()
+#     db_run_column = db.run(f" SELECT * FROM {identifier(table)};")
+#     columns = [col["name"] for col in db.columns]
+#     format_data = [dict(zip(columns, row)) for row in db_run_column]
+#     for row in format_data:
+#         for key in row:
+#             if isinstance(row[key], datetime.datetime):
+#                 row[key] = row[key].isoformat()
+#             if isinstance(row[key], decimal.Decimal):
+#                 row[key] = float(row[key])
+#     close_db_connection(db)
+#     return format_data
+
+# def connect_to_db():
+#     return Connection(
+#         user=,
+#         password=,
+#         database=,
+#         host=,
+#         port=,
+#     ) get values from secrets manager
+
+
+# def close_db_connection(conn):
+#     conn.close()
+
+import json
+#>>>>>>> main
 
 
 
