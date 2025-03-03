@@ -1,22 +1,44 @@
 import boto3
 import os
 
-S3_BUCKET = os.getenv("S3_BUCKET", "mock-ingestion-bucket")
-S3_KEY = os.getenv("S3_KEY", "sample-data.json")
+S3_BUCKET = os.getenv("S3_BUCKET", "ingestion-bucket20250228065732358000000006")
 
-
-def read_file_from_s3(bucket_name, object_key, client=None):
-    
+def read_files_from_s3(bucket_name, client=None):
     if client is None:
-        s3_client = boto3.client("s3")
+        client = boto3.client("s3") 
 
     try:
-        response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
-        data = response["Body"].read().decode("utf-8")
+        response = client.list_objects_v2(Bucket=bucket_name)
 
-        print("File Content:\n", data) #replace with logging if needed
-        return "File Content:\n", data
-      
+        if "Contents" not in response:
+            print(f"No files found in {bucket_name}")
+
+        all_data = {} 
+
+        for object in response["Contents"]:
+            file_key = object["Key"] 
+            
+
+            file_response = client.get_object(Bucket=bucket_name, Key=file_key)
+            
+            if "Body" not in file_response:
+                print(f"⚠️ Skipping {file_key} (no Body in response)")
+                continue
+            
+            file_data = file_response["Body"].read().decode("utf-8")
+            
+
+            all_data[file_key] = file_data
+        
+        print(" Successfully retrieved all files.")
+        return all_data  
+
     except Exception as e:
-        print(f"Error reading from {bucket_name}: {e}") #replace with logging if needed 
-        return f"Error reading from {bucket_name}: {e}"
+        print(f" Error reading files from {bucket_name}: {e}")
+        return {"error": str(e)}    
+
+if __name__ == "__main__":
+    all_files_data = read_files_from_s3(S3_BUCKET)
+    
+    for file_name, content in all_files_data.items():
+        print(f"\n File: {file_name}\n{content}")
