@@ -1,7 +1,4 @@
-import pg8000.native
-from src.connection import connect_to_db, close_db_connection
-from s3_read_function.s3_read_function import read_file_from_s3
-from ingestion_to_processed_bucket.dimensions_tables import dimensions_tables_creation, dim_tables_column_headers
+# BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
 
 # This function will check the input is in the correct format
 # Dictionary containing list of dictionaries (multiple allowed)
