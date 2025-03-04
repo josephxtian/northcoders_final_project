@@ -70,4 +70,3 @@ def update_data_to_s3_bucket(s3_client, bucket_name, list_of_tables, reformat_da
     close_db_connection(db)
     return f"data has been added to {bucket_name}, in files {list_of_table_data_uploaded}"
 
-#update_data_to_s3_bucket(client("s3"), 'ingestion-bucket20250228065732358000000006' , list_of_tables,operational_entries_not_in_ingestion_bucket)

@@ -52,4 +52,3 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables, reformat_data_to_
         return {'result': 'FAILURE' ,"message":"file could not be uploaded"}
     
 
-#write_to_s3_bucket(client("s3"), 'ingestion-bucket20250228065732358000000006' , list_of_tables, reformat_data_to_json)
