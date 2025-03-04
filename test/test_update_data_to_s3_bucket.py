@@ -1,15 +1,15 @@
 from src.update_data_to_s3_bucket import update_data_to_s3_bucket
 from src.upload_to_s3_bucket import write_to_s3_bucket
-from utils.utils_for_ingestion import list_of_tables, get_file_contents_of_last_uploaded,\
-reformat_data_to_json
+from utils.utils_for_ingestion import (
+    get_file_contents_of_last_uploaded,
+)
 import pytest
 import os
 import boto3
 from moto import mock_aws
-from unittest.mock import patch, Mock
-from pprint import pprint
+from unittest.mock import Mock
 import json
-from datetime import datetime
+
 
 @pytest.fixture(scope="module", autouse=True)
 def aws_credentials():
@@ -19,63 +19,81 @@ def aws_credentials():
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
 
+
 class TestUploadsDataWithTimeStamp:
     def test_contents_of_file_test_data_in_s3(self):
         with mock_aws():
-            bucket_name = 'test_bucket'
-            s3_client = boto3.client('s3')
+            bucket_name = "test_bucket"
+            s3_client = boto3.client("s3")
             s3_client.create_bucket(
                 Bucket=bucket_name,
-                CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
-                )
+                CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+            )
+
             def list_of_tables():
-                return["counterparty"]
+                return ["counterparty"]
+
             mock_reformated_data_from_db = Mock()
-            with open('test/test_data/test_data.json','r') as f:
+            with open("test/test_data/test_data.json", "r") as f:
                 data = json.load(f)
             mock_reformated_data_from_db.return_value = data["counterparty"]
-            write_to_s3_bucket(s3_client, bucket_name, list_of_tables, mock_reformated_data_from_db)
-            #get_file_contents_of_last_uploaded(s3_client, bucket_name,"counterparty")
-            no_of_files_before_update = s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount']
-            additional_data = [{
-            "counterparty_id": 21,
-            "counterparty_legal_name": "Fahey and Sons",
-            "legal_address_id": 15,
-            "commercial_contact": "Micheal Toy",
-            "delivery_contact": "Mrs. Lucy Runolfsdottir",
-            "created_at": "2025-02-03T14:20:51.563000",
-            "last_updated": "2025-02-03T14:20:51.563000"
-            }]
+            write_to_s3_bucket(
+                s3_client, bucket_name, list_of_tables,
+                mock_reformated_data_from_db
+            )
+            no_of_files_before_update = s3_client.list_objects_v2(
+                Bucket=bucket_name, Prefix="counterparty"
+            )["KeyCount"]
+            additional_data = [
+                {
+                    "counterparty_id": 21,
+                    "counterparty_legal_name": "Fahey and Sons",
+                    "legal_address_id": 15,
+                    "commercial_contact": "Micheal Toy",
+                    "delivery_contact": "Mrs. Lucy Runolfsdottir",
+                    "created_at": "2025-02-03T14:20:51.563000",
+                    "last_updated": "2025-02-03T14:20:51.563000",
+                }
+            ]
             mock_additional_data = Mock()
             mock_additional_data.return_value = additional_data
-            print(mock_additional_data())
-            update_data_to_s3_bucket(s3_client, bucket_name, list_of_tables, mock_additional_data, 
-                                get_file_contents_of_last_uploaded)
-            assert s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount'] == (no_of_files_before_update +1)
+            update_data_to_s3_bucket(
+                s3_client,
+                bucket_name,
+                list_of_tables,
+                mock_additional_data,
+                get_file_contents_of_last_uploaded,
+            )
+            assert s3_client.list_objects_v2(Bucket=bucket_name,
+                                             Prefix="counterparty")[
+                "KeyCount"
+            ] == (no_of_files_before_update + 1)
             data_from_s3_bucket = []
-            json_file_on_s3 = s3_client.list_objects_v2(Bucket=bucket_name)
-            for i in range(json_file_on_s3['KeyCount']-1):
+            json_file_on_s3 = s3_client.list_objects_v2(
+                Bucket=bucket_name, Prefix="counterparty"
+            )
+            for i in range(json_file_on_s3["KeyCount"]):
                 file_data_to_add = json_file_on_s3["Contents"][i]["Key"]
-                file_data = s3_client.get_object(Bucket=bucket_name, Key=file_data_to_add)
-                data = file_data['Body'].read().decode('utf-8')
+                file_data = s3_client.get_object(
+                    Bucket=bucket_name, Key=file_data_to_add
+                )
+                data = file_data["Body"].read().decode("utf-8")
                 file_content = json.loads(data)
                 for dict in file_content:
                     data_from_s3_bucket.append(dict)
-            with open('test/test_data/test_data.json','r') as f:
+            with open("test/test_data/test_data.json", "r") as f:
                 db_data = json.load(f)["counterparty"]
             db_data.append(additional_data[0])
-            expected = db_data   
-            assert sorted(data_from_s3_bucket, key=lambda d: d["counterparty_id"]) == \
-                   sorted(expected, key=lambda d: d["counterparty_id"])
-            txt_file = json_file_on_s3["Contents"][-1]["Key"]
-            txt_file_data = s3_client.get_object(Bucket=bucket_name, Key=txt_file)
-            json_file_last_updated = txt_file_data['Body'].read().decode('utf-8') 
-            assert json_file_last_updated == 'counterparty/2025/2/3/14:20:51.563000.json'
-
-
-
-
-
-
-
-
+            expected = db_data
+            assert sorted(
+                data_from_s3_bucket, key=lambda d: d["counterparty_id"]
+            ) == sorted(expected, key=lambda d: d["counterparty_id"])
+            txt_file_data = s3_client.get_object(
+                Bucket=bucket_name, Key="last_updated/counterparty.txt"
+            )
+            json_file_last_updated = txt_file_data["Body"].\
+                read().decode("utf-8")
+            assert (
+                json_file_last_updated == """counterparty
+                /2025/2/3/14:20:51.563000.json"""
+            )
