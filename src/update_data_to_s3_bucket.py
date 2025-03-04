@@ -1,7 +1,7 @@
 from boto3 import client
 from src.connection import connect_to_db, close_db_connection
 from pg8000.native import literal, identifier
-from utils.utils_for_ingestion import reformat_data_to_json,list_of_tables,\
+from utils.utils_for_ingestion import reformat_data_to_json, list_of_tables,\
     get_file_contents_of_last_uploaded
 from datetime import datetime
 import decimal

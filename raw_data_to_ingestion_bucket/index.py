@@ -52,7 +52,7 @@ def lambda_handler(event,context):
         database=db_credentials.get("database"),
         host=db_credentials.get("host"),
         port=db_credentials.get("port"))
-    
+     
     update_data_to_s3_bucket(s3_client, 'ingestion-bucket20250228065732358000000006', list_of_tables, reformat_data_to_json, get_file_contents_of_last_uploaded, db)
 
     Connection.close(db)    
@@ -86,7 +86,6 @@ def reformat_data_to_json(operational_data, column_headings):
             if isinstance(row[key], decimal.Decimal):
                 row[key] = float(row[key])
     
-#<<<<<<< lambda_ingestion_bucket
     return sorted(format_data, key=lambda x: x['last_updated'])
    
 def get_file_contents_of_last_uploaded(s3_client,bucket_name, table):
@@ -157,92 +156,3 @@ def update_data_to_s3_bucket(s3_client, bucket_name, list_of_tables, reformat_da
                         data_to_upload = [additional_data_from_op_db[i]]
             list_of_table_data_uploaded.append(table)
     return f"data has been added to {bucket_name}, in files {list_of_table_data_uploaded}"
-#=======
-    for table in the_list_of_tables():
-        list_of_s3_file_metadata = []
-        current_operational_data = reformat_data_to_json(table,db)
-        list_of_s3_file_metadata.append(s3_client.list_objects_v2(Bucket= bucket_name, Prefix=f'{table}'))
-        list_of_files =[]
-        # instead think we should get last modified to get the latest last_updated date then just look in that one file
-        #going to check in list of latest updated files and write to s3 bucket
-        for file_data_s3 in list_of_s3_file_metadata:
-            for i in range(len(file_data_s3['Contents'])):
-                list_of_files.append(file_data_s3['Contents'][i]['Key'])
-        #looping over the files in the s3 bucket 
-        last_updated_date = datetime.strptime('1900-11-03T14:20:52.186000', '%Y-%m-%dT%H:%M:%S.%f')
-        for file in list_of_files:
-            file_data = s3_client.get_object(Bucket=bucket_name, Key=file)
-            data = file_data['Body'].read().decode('utf-8') 
-            file_content = json.loads(data)
-            #looping through the contents of files in s3, to check last_updated datestamp
-            for content in file_content:
-                date_str = content['last_updated']
-                last_updated_as_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f')
-                if last_updated_as_date > last_updated_date:
-                    last_updated_date = last_updated_as_date
-            # checking for content in correct format to check which date is newer(bigger)
-            #looping through operational data to add files datestamped to list 
-            additional_entries = []
-        for data in current_operational_data:
-            data_str = data['last_updated']
-            data_last_update = datetime.strptime(data_str, '%Y-%m-%dT%H:%M:%S.%f')
-            if data_last_update > last_updated_date:
-                additional_entries.append(data)
-        # checking if there's addtional entries to add, a file is created with datestamp
-        if additional_entries:
-            current_timestamp = datetime.now()
-            formatted_timestamp = current_timestamp.strftime('%Y-%m-%d %H:%M:%S')
-            object_key = f"{table}/{formatted_timestamp}.json"
-            s3_client.put_object(Bucket=bucket_name,Key=object_key,Body=json.dumps(additional_entries))
-    return f"data has been added to {bucket_name}"
-    
-#<<<<<<< pip_latest_update_to_txt_file
-
-# def the_list_of_tables():
-#     return [
-#         "address",
-#         "staff",
-#         "department",
-#         "design",
-#         "counterparty",
-#         "sales_order",
-#         "transaction",
-#         "payment",
-#         "purchase_order",
-#         "payment_type",
-#         "currency",
-#     ]
-
-# def reformat_data_to_json(table):
-#     db = connect_to_db()
-#     db_run_column = db.run(f" SELECT * FROM {identifier(table)};")
-#     columns = [col["name"] for col in db.columns]
-#     format_data = [dict(zip(columns, row)) for row in db_run_column]
-#     for row in format_data:
-#         for key in row:
-#             if isinstance(row[key], datetime.datetime):
-#                 row[key] = row[key].isoformat()
-#             if isinstance(row[key], decimal.Decimal):
-#                 row[key] = float(row[key])
-#     close_db_connection(db)
-#     return format_data
-
-# def connect_to_db():
-#     return Connection(
-#         user=,
-#         password=,
-#         database=,
-#         host=,
-#         port=,
-#     ) get values from secrets manager
-
-
-# def close_db_connection(conn):
-#     conn.close()
-
-import json
-#>>>>>>> main
-
-
-
-#>>>>>>> main
