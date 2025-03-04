@@ -98,3 +98,13 @@ SQL is used to fetch all the data from all the tables.
 ### update_to_s3_bucket.py
 *`get_file_contents_of_last_uploaded():`* function is called to check the most recent uploaded data for each of the tables in the s3 bucket. SQL is used to query the database for records with a last_updated timestamp greater than the most recent timestamp stored in S3. 
  *`reformat_data_to_json():`* is called to convert the database rows into Json files. If new or updated data exists, it uploads the data to the S3 bucket, organizing it by timestamp and creating the appropriate object keys. After each upload, it updates the *`last_updated.txt`* file in the S3 bucket to store the path to the latest uploaded data for each table.
+
+### fact_sales_order.py
+* create_fact_sales_order_table(): * function is called to create the fact_sales_order table and adds foreign key constraints that adhers to key relationships in raw and dim tables.
+* transform_fact_data(): * function that transforms raw data from s3 ingestion bucket into star schema format. Pandas used to create a staging table to contain column values found in raw json data. SQL query is then executed which adds the data to the final fact_sales_order table
+
+### write_schema_to_processed.py
+* write_schema_to_processed(): * function currently uses hardcoded bucket name for processed s3 bucket. This will likely need changing after each terraform destroy. Function to dynamically fetch bucket based in prefix to be substituted. Pandas is used to create a DataFrame that can then be converted into parquet format. Boto3 then used to write to a file with a dynamic name depending on source_file metadata from respective file in s3 ingestion bucket.
+
+
+
