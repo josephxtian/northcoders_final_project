@@ -1,11 +1,11 @@
 from src.update_data_to_s3_bucket import update_data_to_s3_bucket
-from src.upload_to_s3_bucket import write_to_s3_bucket, the_list_of_tables
 import pytest
 import os
 import boto3
 from moto import mock_aws
 from unittest.mock import patch, Mock
 from pprint import pprint
+import uuid
 import json
 from datetime import datetime
 @pytest.fixture(scope="module", autouse=True)
@@ -21,9 +21,9 @@ def s3_client(aws_credentials):
         yield boto3.client("s3", region_name="eu-west-2")
 @pytest.fixture
 def bucket(s3_client):
-    bucket_name = 'test_bucket'
+    bucket_name = bucket_name
     s3_client.create_bucket(
-        Bucket="test_bucket",
+        Bucket=f"test-bucket-{uuid.uuid4()}",
         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"}
     )
     object_key1 = "address/seed.json"

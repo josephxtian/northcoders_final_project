@@ -1,3 +1,4 @@
+# This creates a cloudwatch log group called Lambda Ingestion
 resource "aws_cloudwatch_log_group" "lambda_log" {
   name = "Lambda_Ingestion"
   
