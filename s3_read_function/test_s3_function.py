@@ -2,11 +2,12 @@ import boto3
 import pytest
 from s3_read_function import read_file_from_s3
 from moto import mock_aws
+import uuid
 
 class TestReadFromS3:
     @pytest.fixture
     def setup_s3(self):
-        bucket_name = "test-bucket"
+        bucket_name = f"test-bucket-{uuid.uuid4().hex}"
         s3_client = boto3.client("s3", region_name="eu-west-2")
 
         s3_client.create_bucket(
