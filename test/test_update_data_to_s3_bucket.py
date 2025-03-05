@@ -39,18 +39,20 @@ class TestUploadsDataWithTimeStamp:
             write_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables, mock_reformated_data_from_db)
             
             
-            no_of_files_before_update = s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount']
-            additional_data = [{
-            "counterparty_id": 21,
-            "counterparty_legal_name": "Fahey and Sons",
-            "legal_address_id": 15,
-            "commercial_contact": "Micheal Toy",
-            "delivery_contact": "Mrs. Lucy Runolfsdottir",
-            "created_at": "2025-02-03T14:20:51.563000",
-            "last_updated": "2025-02-03T14:20:51.563000"
-            }]
+            no_of_files_before_update = s3_client.list_objects_v2(Prefix = "counterparty", Bucket=bucket_name)['KeyCount']
+            
+            def mock_additional_data(x,y):
+                return [{
+                "counterparty_id": 21,
+                "counterparty_legal_name": "Fahey and Sons",
+                "legal_address_id": 15,
+                "commercial_contact": "Micheal Toy",
+                "delivery_contact": "Mrs. Lucy Runolfsdottir",
+                "created_at": "2026-02-03T14:20:51.563000",
+                "last_updated": "2026-02-03T14:20:51.563000"
+                }]
 
-            mock_additional_data_last_uploaded = Mock(return_value=[{
+            last_uploaded_data = Mock(return_value=[{
             "counterparty_id": 20,
             "counterparty_legal_name": "Yost, Watsica and Mann",
             "legal_address_id": 2,
@@ -60,20 +62,16 @@ class TestUploadsDataWithTimeStamp:
             "last_updated": "2025-11-03T14:20:51.563000"
             }])
           
-            update_data_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables, mock_additional_data_last_uploaded, 
-                                     mock_reformated_data_from_db,  
+            update_data_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables, mock_additional_data,   
+                                      last_uploaded_data                     
                                 )
             
-            assert s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount'] == (no_of_files_before_update +1)
-            
+            assert s3_client.list_objects_v2(Prefix = "counterparty", Bucket=bucket_name)['KeyCount'] == (no_of_files_before_update +1)
             
             data_from_s3_bucket = []
             json_file_on_s3 = s3_client.list_objects_v2(Prefix="counterparty",Bucket=bucket_name)
-            
             txt_file_data = s3_client.get_object(Bucket=bucket_name, Key="last_updated/counterparty.txt")
             json_file_last_updated = txt_file_data['Body'].read().decode('utf-8')
-            print(json_file_last_updated)
-
             for i in range(json_file_on_s3['KeyCount']):
                 file_data_to_add = json_file_on_s3["Contents"][i]["Key"]
                 file_data = s3_client.get_object(Bucket=bucket_name, Key=file_data_to_add)
@@ -81,17 +79,15 @@ class TestUploadsDataWithTimeStamp:
                 file_content = json.loads(data)
                 for dict_item in file_content:
                     data_from_s3_bucket.append(dict_item)
-          
 
             with open('test/test_data/test_data.json','r') as f:
                 db_data = json.load(f)["counterparty"]
 
-            db_data.append(additional_data[0])
+            db_data.append(mock_additional_data("x","y")[0])
             expected = db_data   
-            
             assert sorted(data_from_s3_bucket, key=lambda d: d["counterparty_id"]) == \
                    sorted(expected, key=lambda d: d["counterparty_id"])
             txt_file = "last_updated/counterparty.txt"
             txt_file_data = s3_client.get_object(Bucket=bucket_name, Key=txt_file)
             json_file_last_updated = txt_file_data['Body'].read().decode('utf-8') 
-            assert json_file_last_updated == 'counterparty/2025/2/3/14:20:51.563000.json'
+            assert json_file_last_updated == 'counterparty/2026/2/3/14:20:51.563000.json'

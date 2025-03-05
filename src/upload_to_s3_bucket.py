@@ -33,8 +33,7 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables,
                         month = date_updated.month
                         day = date_updated.day
                         time = date_updated.time()
-                        object_key = f"""{table}/{year}/
-                        {month}/{day}/{time}.json"""
+                        object_key = f"""{table}/{year}/{month}/{day}/{time}.json"""
                         s3_client.put_object(
                             Bucket=bucket_name,
                             Key=object_key,
@@ -52,8 +51,7 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables,
                     elif (
                         json_formatted_data_to_upload[i]["last_updated"]
                         != json_formatted_data_to_upload[i - 1]["last_updated"]):
-                        date_updated = datetime.strptime(
-                            json_formatted_data_to_upload[i - 1]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f",)
+                        date_updated = datetime.strptime(json_formatted_data_to_upload[i - 1]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                         year = date_updated.year
                         month = date_updated.month
                         day = date_updated.day
