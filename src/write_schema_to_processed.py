@@ -23,19 +23,24 @@ def write_schema_to_processed(data):
     if not bucket_name:
         raise ValueError("processed-bucket20250303162226216400000005 environment variable is not set")
     
-    source_file = data[0].get("source_file", "unknown_source.json")
+    # source_file = data[0].get("source_file", "unknown_source.json")
+
+    if "source_file" in data.columns:
+        source_file = data["source_file"].iloc[0]
+        file_basename = os.path.splitext(os.path.basename(source_file))[0]
+    else:
+        file_basename = "unknown_source"
 
     timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
     
 # Set a variable key which dynamically changes the name of each of the pieces of processed data based on one of their unique elements
-    key = f"fact_sales_orders/{source_file.replace('.json', '')}_{timestamp}.parquet"
+    key = f"fact_sales_orders/{file_basename}_processed_{timestamp}.parquet"
 
     try:
-        df = pd.DataFrame(data)
         # Convert the files into parquet format
 
         buffer = io.BytesIO()
-        df.to_parquet(buffer, engine="pyarrow", index=False)
+        data.to_parquet(buffer, engine="pyarrow", index=False)
 
         # Write each file into the S3 processed bucket
         s3_client.put_object(
