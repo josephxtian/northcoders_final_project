@@ -21,9 +21,9 @@ def s3_client(aws_credentials):
         yield boto3.client("s3", region_name="eu-west-2")
 @pytest.fixture
 def bucket(s3_client):
-    bucket_name = bucket_name
+    bucket_name = f"test-bucket-{uuid.uuid4()}"
     s3_client.create_bucket(
-        Bucket=f"test-bucket-{uuid.uuid4()}",
+        Bucket=bucket_name,
         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"}
     )
     object_key1 = "address/seed.json"
