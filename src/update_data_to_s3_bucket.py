@@ -11,7 +11,7 @@ def update_data_to_s3_bucket(s3_client, bucket_name, list_of_tables, reformat_da
                              get_file_contents_of_last_uploaded):
     db = connect_to_db()
     list_of_table_data_uploaded = []
-    for table in list_of_tables():
+    for table in list_of_tables:
         last_data_uploaded = get_file_contents_of_last_uploaded(s3_client, bucket_name,table)
         last_updated_date =datetime.strptime('1900-11-03T14:20:52.186000', '%Y-%m-%dT%H:%M:%S.%f') 
         for row in last_data_uploaded:
