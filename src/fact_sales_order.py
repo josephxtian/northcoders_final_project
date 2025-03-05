@@ -135,9 +135,7 @@ def transform_fact_data(raw_data):
         raise
     finally:
         close_db_connection(conn)
-
-    transformed_df = pd.DataFrame(transformed_data)
-    return transformed_df
+    return transformed_data
 
 
 
