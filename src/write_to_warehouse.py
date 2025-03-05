@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import re
 import datetime
+import io
 """
 This function should read from the s3 processed bucket then send the data to the data warehouse.
 
@@ -35,7 +36,7 @@ def read_from_s3_processed_bucket():
         file_dates_list = []
         objects = s3_client.list_objects_v2(bucket="processed-bucket20250303162226216400000005", prefix=f"{table}/")
         for object in objects["Contents"]:
-            key = object["key"]
+            key = object["Key"]
             filename_timestamp_format = "%Y-%m-%d_%H-%M-%S"
             filename_timestamp_str = key.split(f"{table}_")[1].split(".parquet")[0] 
             timestamp = datetime.strptime(filename_timestamp_str, filename_timestamp_format)
@@ -46,30 +47,29 @@ def read_from_s3_processed_bucket():
         
         latest_file_object = s3_client.get_object(bucket="processed-bucket20250303162226216400000005", key=latest_file)
 
-        buffer = io.BytesIO()
-        data.to_parquet(buffer, engine="pyarrow", index=False)
+        buffer = io.BytesIO(latest_file_object["Body"].read())
+        dataframe = pd.read_parquet(buffer, engine="pyarrow")
+        data_frames_dict[table] = dataframe
 
-   
-
-
-
-
+    return data_frames_dict
 
 # connect to the (redshift?) warehouse, conn=
 
-def write_to_warehouse(file):
-
-
+def write_to_warehouse(data_frames_dict): 
 # convert from parquet back to schema
     try:
         conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, database=PG_DATABASE, user=PG_USER, password=PG_PASSWORD)
         cur = conn.cursor()
-        for file 
-        cur.execute("""SELECT now()""")
-        query_results = cur.fetchall()
-        print(query_results)
+        for table_name, dataframe in data_frames_dict.items():
+            query = f"SELECT * FROM {table_name}" 
+            cur.execute(query)
+            query_results = cur.fetchall()
+            print(query_results)
     except Exception as e:
-        print("Database connection failed due to {}".format(e))  
+        print("Database connection failed due to {}".format(e))
+    finally:
+        cur.close()
+        conn.close()  
 # Insert data into redshift via postgres query
 # upload to warehouse in defined intervals
 # must be adequately logged in cloudwatch
