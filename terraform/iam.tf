@@ -4,6 +4,8 @@
 # GLOBALLY USED
 # allows roles to access each service with credentials
 # indentifiers are called 'service principal name'
+
+# Defines a trust polocy for lambda to assume IAM role for Lambda, S3, Eventbridge and StepFunction
 data "aws_iam_policy_document" "lambda_assume_role" {
   statement {
     effect = "Allow"
@@ -15,18 +17,20 @@ data "aws_iam_policy_document" "lambda_assume_role" {
   }
 }
 
+# policy document containing relevant permissions for cloudwatch logs
 data "aws_iam_policy_document" "iam_cloudwatch_log_doc" {
   statement {
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
+      "log:PutLogEvents"
     ]
     resources = [
       "${aws_cloudwatch_log_group.lambda_log.arn}"
     ]
   }
 }
-
+# Defines policy that allows cloudwatch to log lambda events
 resource "aws_iam_policy" "iam_cloudwatch_log" {
   name   = "cloudwatch_log_policy"
   path   = "/"
@@ -39,19 +43,20 @@ data "aws_iam_policy_document" "iam_ingestion_write_policy_doc" {
   statement {
     actions = [
       "s3:PutObject",
-      "s3:UploadPart"
+      "s3:UploadPart",
+      "s3:GetObject"
     ]
     resources = [
-      "${aws_s3_bucket.ingestion_bucket.arn}"
+      "${aws_s3_bucket.ingestion_bucket.arn}/*"
     ]
   }
 }
-
+# attaches policy doucment to role for Lambda 1
 resource "aws_iam_role" "lambda_1_role" {
   name_prefix        = "role-${var.lambda_1_name}"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
-
+# creates policy for allowing files to be written to ingestion bucket
 resource "aws_iam_policy" "iam_ingestion_write_policy" {
   name   = "ingestion_write_policy"
   path   = "/"
@@ -67,6 +72,7 @@ resource "aws_iam_role_policy_attachment" "lambda_1_cloudwatch_attachment" {
   role = aws_iam_role.lambda_1_role.name
   policy_arn = aws_iam_policy.iam_cloudwatch_log.arn
 }
+
 
 # LAMBDA 2 - INGESTION TO PROCESSED_BUCKET
 # reads from ingestion_bucket and writes to processed_bucket
@@ -123,10 +129,12 @@ data "aws_iam_policy_document" "iam_processed_read_policy_doc" {
   statement {
     actions = [
       "s3:PutObject",
-      "s3:UploadPart"
+      "s3:UploadPart",
+      "s3:GetObject",
+      "s3:ListBucket"
     ]
     resources = [
-      "${aws_s3_bucket.ingestion_bucket.arn}"
+      "${aws_s3_bucket.processed_bucket.arn}"
     ]
   }
   statement {
@@ -204,10 +212,12 @@ data "aws_iam_policy_document" "iam_step_function_execution_doc" {
       "cloudwatch:ListLogDeliveries",
       "cloudwatch:PutResourcePolicy",
       "cloudwatch:DescribeResourcePolicies",
-      "cloudwatch:DescribeLogGroups"
+      "cloudwatch:DescribeLogGroups",
+      "logs:PutLogEvents"
     ]
     resources = [
-      "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}"
+      "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}",
+      "${aws_cloudwatch_log_group.step_function_logs.arn}"
     ]
   }
 }
@@ -226,4 +236,9 @@ resource "aws_iam_policy" "iam_step_function_policy" {
 resource "aws_iam_role_policy_attachment" "iam_event_step_function_attachment" {
   role = aws_iam_role.step_function_execution_role.name
   policy_arn = aws_iam_policy.iam_step_function_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "step_function_cloudwatch_attachment" {
+  role       = aws_iam_role.step_function_execution_role.name
+  policy_arn = aws_iam_policy.iam_cloudwatch_log.arn
 }

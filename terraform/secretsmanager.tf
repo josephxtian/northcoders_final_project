@@ -25,7 +25,7 @@ output "db_credentials" {
   sensitive = true
 }
 
-#gives ccess to read credetnials from secrets manager
+#gives access to read credetnials from secrets manager
 resource "aws_iam_policy" "secrets_access_policy" {
   name        = "secrets-access-policy"
   description = "Allows access to database credentials in AWS Secrets Manager"

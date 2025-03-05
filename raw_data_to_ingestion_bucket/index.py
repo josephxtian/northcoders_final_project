@@ -1,11 +1,9 @@
 import boto3
-from src.upload_to_s3_bucket import the_list_of_tables
 from botocore.exceptions import ClientError
-from src.converts_data_to_json import reformat_data_to_json
 from datetime import datetime
 import json
 import decimal
-from pg8000.native import literal, identifier,Connection
+from pg8000.native import literal, identifier, Connection
 
 
 def get_secret():
@@ -15,43 +13,61 @@ def get_secret():
 
     # Create a Secrets Manager client
     session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
-    )
+    client = session.client(service_name="secretsmanager",
+                            region_name=region_name)
 
     try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
-        )
+        get_secret_value_response = \
+            client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
-        # For a list of exceptions thrown, see
-        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        print(f"Error retrieving secret: {e}")
         raise e
 
-    secret = get_secret_value_response['SecretString']
+    secret = get_secret_value_response.get("SecretString")
+
+    # return secret
+
+    try:
+        db_credentials = json.loads(secret)
+        print(db_credentials)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing secret JSON: {e}")
+        raise
+
+    return db_credentials
 
 
 s3_client = boto3.client("s3")
-def lambda_handler(event,context):
-    credentials = get_secret()
+
+
+def lambda_handler(event, context):
+    db_credentials = get_secret()
+
+    if not isinstance(db_credentials, dict):
+        raise ValueError("The credentials not in expected dict format")
+
     db = Connection(
-        user=credentials["user"],
-        password=credentials["password"],
-        database=credentials["database"],
-        host=credentials["host"],
-        port=credentials["port"])
-    
-    
-    update_data_to_s3_bucket(s3_client, 'ingestion-bucket20250228065732358000000006', the_list_of_tables,reformat_data_to_json)
+        user=db_credentials.get("user"),
+        password=db_credentials.get("password"),
+        database=db_credentials.get("database"),
+        host=db_credentials.get("host"),
+        port=db_credentials.get("port"),
+    )
 
-    Connection.close(db)    
-    message = 'Hello, we\'re in raw_data_to_ingestion_bucket {} !'.format(event['key1'])
-    return {
-        'message' : message
-    }
+    update_ingress_bucket = update_data_to_s3_bucket(
+        s3_client,
+        "ingestion-bucket20250228065732358000000006",
+        list_of_tables,
+        reformat_data_to_json,
+        get_file_contents_of_last_uploaded,
+        db,
+    )
 
-def the_list_of_tables():
+    Connection.close(db)
+    return update_ingress_bucket
+
+
+def list_of_tables():
     return [
         "address",
         "staff",
@@ -67,104 +83,129 @@ def the_list_of_tables():
     ]
 
 
-def reformat_data_to_json(table,db):
-    db_run_column = db.run(f" SELECT * FROM {identifier(table)};")
-    columns = [col["name"] for col in db.columns]
-    format_data = [dict(zip(columns, row)) for row in db_run_column]
+def reformat_data_to_json(operational_data, column_headings):
+
+    format_data = [dict(zip(column_headings, row)) for row in operational_data]
     for row in format_data:
         for key in row:
             if isinstance(row[key], datetime):
-                row[key] = row[key].strftime('%Y-%m-%dT%H:%M:%S.%f')
+                row[key] = row[key].strftime("%Y-%m-%dT%H:%M:%S.%f")
             if isinstance(row[key], decimal.Decimal):
                 row[key] = float(row[key])
-    return format_data
 
-def update_data_to_s3_bucket(s3_client, bucket_name, the_list_of_tables,reformat_data_to_json,db):
-    
-    for table in the_list_of_tables():
-        list_of_s3_file_metadata = []
-        current_operational_data = reformat_data_to_json(table,db)
-        list_of_s3_file_metadata.append(s3_client.list_objects_v2(Bucket= bucket_name, Prefix=f'{table}'))
-        list_of_files =[]
-        # instead think we should get last modified to get the latest last_updated date then just look in that one file
-        #going to check in list of latest updated files and write to s3 bucket
-        for file_data_s3 in list_of_s3_file_metadata:
-            for i in range(len(file_data_s3['Contents'])):
-                list_of_files.append(file_data_s3['Contents'][i]['Key'])
-        #looping over the files in the s3 bucket 
-        last_updated_date = datetime.strptime('1900-11-03T14:20:52.186000', '%Y-%m-%dT%H:%M:%S.%f')
-        for file in list_of_files:
-            file_data = s3_client.get_object(Bucket=bucket_name, Key=file)
-            data = file_data['Body'].read().decode('utf-8') 
-            file_content = json.loads(data)
-            #looping through the contents of files in s3, to check last_updated datestamp
-            for content in file_content:
-                date_str = content['last_updated']
-                last_updated_as_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f')
-                if last_updated_as_date > last_updated_date:
-                    last_updated_date = last_updated_as_date
-            # checking for content in correct format to check which date is newer(bigger)
-            #looping through operational data to add files datestamped to list 
-            additional_entries = []
-        for data in current_operational_data:
-            data_str = data['last_updated']
-            data_last_update = datetime.strptime(data_str, '%Y-%m-%dT%H:%M:%S.%f')
-            if data_last_update > last_updated_date:
-                additional_entries.append(data)
-        # checking if there's addtional entries to add, a file is created with datestamp
-        if additional_entries:
-            current_timestamp = datetime.now()
-            formatted_timestamp = current_timestamp.strftime('%Y-%m-%d %H:%M:%S')
-            object_key = f"{table}/{formatted_timestamp}.json"
-            s3_client.put_object(Bucket=bucket_name,Key=object_key,Body=json.dumps(additional_entries))
-    return f"data has been added to {bucket_name}"
-    
-#<<<<<<< pip_latest_update_to_txt_file
-
-# def the_list_of_tables():
-#     return [
-#         "address",
-#         "staff",
-#         "department",
-#         "design",
-#         "counterparty",
-#         "sales_order",
-#         "transaction",
-#         "payment",
-#         "purchase_order",
-#         "payment_type",
-#         "currency",
-#     ]
-
-# def reformat_data_to_json(table):
-#     db = connect_to_db()
-#     db_run_column = db.run(f" SELECT * FROM {identifier(table)};")
-#     columns = [col["name"] for col in db.columns]
-#     format_data = [dict(zip(columns, row)) for row in db_run_column]
-#     for row in format_data:
-#         for key in row:
-#             if isinstance(row[key], datetime.datetime):
-#                 row[key] = row[key].isoformat()
-#             if isinstance(row[key], decimal.Decimal):
-#                 row[key] = float(row[key])
-#     close_db_connection(db)
-#     return format_data
-
-# def connect_to_db():
-#     return Connection(
-#         user=,
-#         password=,
-#         database=,
-#         host=,
-#         port=,
-#     ) get values from secrets manager
+    return sorted(format_data, key=lambda x: x["last_updated"])
 
 
-# def close_db_connection(conn):
-#     conn.close()
+def get_file_contents_of_last_uploaded(s3_client, bucket_name, table):
+    file_data = s3_client.get_object(
+        Bucket=bucket_name, Key=f"{table}/last_updated.txt"
+    )
+    file_with_latest_data = file_data["Body"].read().decode("utf-8")
+    file_data = s3_client.get_object(Bucket=bucket_name,
+                                     Key=file_with_latest_data)
+    data = file_data["Body"].read().decode("utf-8")
+    file_content = json.loads(data)
+    return file_content
 
-import json
-#>>>>>>> main
 
+def update_data_to_s3_bucket(
+    s3_client,
+    bucket_name,
+    list_of_tables,
+    reformat_data_to_json,
+    get_file_contents_of_last_uploaded,
+    db,
+):
+    list_of_table_data_uploaded = []
+    for table in list_of_tables():
+        last_data_uploaded = get_file_contents_of_last_uploaded(
+            s3_client, bucket_name, table
+        )
+        last_updated_date = datetime.strptime(
+            "1900-11-03T14:20:52.186000", "%Y-%m-%dT%H:%M:%S.%f"
+        )
+        for row in last_data_uploaded:
+            data_from_s3 = datetime.strptime(
+                row["last_updated"], "%Y-%m-%dT%H:%M:%S.%f"
+            )
+            if data_from_s3 > last_updated_date:
+                last_updated_date = data_from_s3
+        db_run_column = db.run(
+            f""" SELECT * FROM {identifier(table)}
+                WHERE last_updated > {literal(last_updated_date)};"""
+        )
+        columns = [col["name"] for col in db.columns]
+        additional_data_from_op_db = reformat_data_to_json(db_run_column,
+                                                           columns)
 
+        if additional_data_from_op_db:
+            data_to_upload = [additional_data_from_op_db[0]]
+            if len(additional_data_from_op_db) == 1:
+                date_updated = datetime.strptime(
+                    additional_data_from_op_db[0]["last_updated"],
+                    "%Y-%m-%dT%H:%M:%S.%f",
+                )
+                year = date_updated.year
+                month = date_updated.month
+                day = date_updated.day
+                time = date_updated.time()
+                object_key = f"{table}/{year}/{month}/{day}/{time}.json"
+                s3_client.put_object(
+                    Bucket=bucket_name, Key=object_key,
+                    Body=json.dumps(data_to_upload)
+                )
+                s3_client.put_object(
+                    Bucket=bucket_name, Key=f"{table}/last_updated.txt",
+                    Body=object_key
+                )
+            for i in range(1, len(additional_data_from_op_db)):
+                if i == len(additional_data_from_op_db) - 1:
+                    data_to_upload.append(additional_data_from_op_db[i])
+                    date_updated = datetime.strptime(
+                        additional_data_from_op_db[i]["last_updated"],
+                        "%Y-%m-%dT%H:%M:%S.%f",
+                    )
+                    year = date_updated.year
+                    month = date_updated.month
+                    day = date_updated.day
+                    time = date_updated.time()
+                    object_key = f"{table}/{year}/{month}/{day}/{time}.json"
+                    s3_client.put_object(
+                        Bucket=bucket_name,
+                        Key=object_key,
+                        Body=json.dumps(data_to_upload),
+                    )
+                    s3_client.put_object(
+                        Bucket=bucket_name,
+                        Key=f"{table}/last_updated.txt",
+                        Body=object_key,
+                    )
 
+                elif additional_data_from_op_db[i]["last_updated"] == (
+                    additional_data_from_op_db[i - 1]["last_updated"]
+                ):
+                    data_to_upload.append(additional_data_from_op_db[i])
+                elif additional_data_from_op_db[i]["last_updated"] != (
+                    additional_data_from_op_db[i - 1]["last_updated"]
+                ):
+                    date_updated = datetime.strptime(
+                        additional_data_from_op_db[i - 1]["last_updated"],
+                        "%Y-%m-%dT%H:%M:%S.%f",
+                    )
+                    year = date_updated.year
+                    month = date_updated.month
+                    day = date_updated.day
+                    time = date_updated.time()
+                    object_key = f"{table}/{year}/{month}/{day}/{time}.json"
+                    s3_client.put_object(
+                        Bucket=bucket_name,
+                        Key=object_key,
+                        Body=json.dumps(data_to_upload),
+                    )
+                    data_to_upload = [additional_data_from_op_db[i]]
+            list_of_table_data_uploaded.append(table)
+    return {
+            "message":
+            f"""data has been added to {bucket_name},
+            in files {list_of_table_data_uploaded}"""
+    }
