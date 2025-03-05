@@ -23,7 +23,7 @@ def s3_client(aws_credentials):
         yield boto3.client("s3", region_name="eu-west-2")
 @pytest.fixture
 def bucket(s3_client):
-    bucket_name = f"test-bucket-{uuid.uuid4()}"
+    bucket_name = f"test-bucket-{uuid.uuid4.hex()}"
     s3_client.create_bucket(
         Bucket=bucket_name,
         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"}
@@ -48,13 +48,13 @@ def test_func(test_list):
 class TestUploadsDataWithTimeStamp:
     @pytest.mark.it("unit test: retreieves list of files from S3 bucket")
     def test_retreives_list_of_files(self, s3_client, bucket):
-        bucket_name = f"test-bucket-{uuid.uuid4()}"
+        bucket_name = f"test-bucket-{uuid.uuid4.hex()}"
         mock_reformat_data_to_json = Mock()
         mock_reformat_data_to_json.return_value = test_list
         update_data_to_s3_bucket(s3_client, bucket_name, test_list, mock_reformat_data_to_json, get_file_contents_of_last_uploaded )
         data_on_files_from_s3 = s3_client.list_objects_v2(Bucket= bucket)
         assert data_on_files_from_s3['KeyCount'] ==3
-        
+
     # @pytest.mark.it("unit test: checks the data retreieved from s3 bucket")
     # def test_data_retreived_from_s3(s3, bucket, s3_client):
     #     data_on_files_from_s3 = s3_client.list_objects_v2(Bucket=bucket, Prefix="address")

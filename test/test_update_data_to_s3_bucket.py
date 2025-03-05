@@ -23,7 +23,7 @@ def aws_credentials():
 class TestUploadsDataWithTimeStamp:
     def test_contents_of_file_test_data_in_s3(self):
         with mock_aws():
-            bucket_name = f"test-bucket-{uuid.uuid4()}"
+            bucket_name = f"test-bucket-{uuid.uuid4().hex}"
             s3_client = boto3.client('s3')
             s3_client.create_bucket(
                 Bucket=bucket_name,
