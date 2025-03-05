@@ -76,7 +76,7 @@ class TestTransformFactDataFunction:
 
         result = transform_fact_data(mock_input)
 
-        assert result == []
+        assert result.empty
 
     # test 2 - sql exception error raised if function fails
 
@@ -119,22 +119,22 @@ class TestTransformFactDataFunction:
 
         result = transform_fact_data(TEST_JSON_DATA)
 
-        assert isinstance(result, list)
+        assert isinstance(result, pd.DataFrame)
         assert len(result) == 1
-        assert result[0]["sales_order_id"] == 1001
-        assert result[0]["created_date"] == "2024-02-20"
-        assert result[0]["created_time"] == "10:15:00"
-        assert result[0]["last_updated_date"] == "2024-02-21"
-        assert result[0]["last_updated_time"] == "12:30:00"
-        assert result[0]["sales_staff_id"] == 501
-        assert result[0]["counterparty_id"] == 301
-        assert result[0]["units_sold"] == 5
-        assert result[0]["unit_price"] == 25.50
-        assert result[0]["currency_id"] == 1
-        assert result[0]["design_id"] == 1001
-        assert result[0]["agreed_payment_date"] == "2024-02-25"
-        assert result[0]["agreed_delivery_date"] == "2024-02-27"
-        assert result[0]["agreed_delivery_location_id"] == 2001
+        assert result.iloc[0]["sales_order_id"] == 1001
+        assert result.iloc[0]["created_date"] == "2024-02-20"
+        assert result.iloc[0]["created_time"] == "10:15:00"
+        assert result.iloc[0]["last_updated_date"] == "2024-02-21"
+        assert result.iloc[0]["last_updated_time"] == "12:30:00"
+        assert result.iloc[0]["sales_staff_id"] == 501
+        assert result.iloc[0]["counterparty_id"] == 301
+        assert result.iloc[0]["units_sold"] == 5
+        assert result.iloc[0]["unit_price"] == 25.50
+        assert result.iloc[0]["currency_id"] == 1
+        assert result.iloc[0]["design_id"] == 1001
+        assert result.iloc[0]["agreed_payment_date"] == "2024-02-25"
+        assert result.iloc[0]["agreed_delivery_date"] == "2024-02-27"
+        assert result.iloc[0]["agreed_delivery_location_id"] == 2001
 
 
 
