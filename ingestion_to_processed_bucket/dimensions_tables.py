@@ -121,4 +121,3 @@ dim_date_columns = ["dim_date","date_id",
   "counterparty_legal_country" varchar NOT NULL,
   "counterparty_legal_phone_number" varchar NOT NULL
 );'''
-}
