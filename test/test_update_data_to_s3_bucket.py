@@ -62,7 +62,7 @@ class TestUploadsDataWithTimeStamp:
             update_data_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables(), mock_additional_data_last_uploaded, 
                                 mock_reformated_data_from_db)
             assert s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount'] == (no_of_files_before_update +1)
-            
+
             
             json_file_on_s3 = s3_client.list_objects_v2(Bucket=bucket_name)
             timestamped_files = []
@@ -135,3 +135,4 @@ class TestUploadsDataWithTimeStamp:
 
                 assert sorted(data_from_s3_bucket, key=lambda d: d["counterparty_id"]) == \
                     sorted(expected, key=lambda d: d["counterparty_id"])
+

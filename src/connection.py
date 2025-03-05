@@ -4,6 +4,7 @@ import os
 
 load_dotenv()
 
+
 def connect_to_db():
     return Connection(
         user=os.getenv("PG_USER"),
