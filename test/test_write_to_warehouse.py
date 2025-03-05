@@ -7,6 +7,7 @@ from moto import mock_aws
 from src.write_to_warehouse import read_from_s3_processed_bucket, write_to_warehouse
 import os
 import io
+import psycopg2
 
 
 @pytest.fixture
