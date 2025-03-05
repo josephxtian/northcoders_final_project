@@ -3,6 +3,8 @@ import pytest
 import os
 import boto3
 from moto import mock_aws
+from utils.utils_for_ingestion import reformat_data_to_json, list_of_tables,\
+    get_file_contents_of_last_uploaded
 from unittest.mock import patch, Mock
 from pprint import pprint
 import uuid
@@ -46,7 +48,7 @@ class TestUploadsDataWithTimeStamp:
         bucket_name = 'test_bucket'
         mock_reformat_data_to_json = Mock()
         mock_reformat_data_to_json.return_value = test_list
-        update_data_to_s3_bucket(s3_client, bucket_name, test_list, mock_reformat_data_to_json)
+        update_data_to_s3_bucket(s3_client, bucket_name, test_list, mock_reformat_data_to_json, get_file_contents_of_last_uploaded )
         data_on_files_from_s3 = s3_client.list_objects_v2(Bucket= bucket)
         assert data_on_files_from_s3['KeyCount'] ==3
     # @pytest.mark.it("unit test: checks the data retreieved from s3 bucket")
