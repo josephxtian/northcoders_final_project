@@ -2,6 +2,7 @@ from src.update_data_to_s3_bucket import update_data_to_s3_bucket
 from src.upload_to_s3_bucket import write_to_s3_bucket
 from utils.utils_for_ingestion import list_of_tables, get_file_contents_of_last_uploaded,\
 reformat_data_to_json
+import uuid
 import pytest
 import os
 import boto3
@@ -22,12 +23,13 @@ def aws_credentials():
 class TestUploadsDataWithTimeStamp:
     def test_contents_of_file_test_data_in_s3(self):
         with mock_aws():
-            bucket_name = "test_bucket"
+            bucket_name = f"test-bucket-{uuid.uuid4()}"
             s3_client = boto3.client('s3')
             s3_client.create_bucket(
                 Bucket=bucket_name,
                 CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
                 )
+            
             def mock_list_of_tables():
                 return["counterparty"]
             mock_reformated_data_from_db = Mock()
