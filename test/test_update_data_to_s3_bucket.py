@@ -59,7 +59,7 @@ class TestUploadsDataWithTimeStamp:
                 "last_updated": "2025-12-03T14:20:51.563000"
             }])
           
-            update_data_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables(), mock_additional_data_last_uploaded, 
+            update_data_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables, mock_additional_data_last_uploaded, 
                                 mock_reformated_data_from_db)
             assert s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount'] == (no_of_files_before_update +1)
 
