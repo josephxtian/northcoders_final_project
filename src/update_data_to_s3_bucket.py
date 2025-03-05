@@ -9,7 +9,7 @@ def update_data_to_s3_bucket(
     list_of_tables,
     reformat_data_to_json,
     get_file_contents_of_last_uploaded,
-):
+    ):
     db = connect_to_db()
     list_of_table_data_uploaded = []
     for table in list_of_tables():

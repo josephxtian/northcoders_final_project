@@ -204,8 +204,8 @@ def update_data_to_s3_bucket(
                     )
                     data_to_upload = [additional_data_from_op_db[i]]
             list_of_table_data_uploaded.append(table)
-        return {
+    return {
             "message":
             f"""data has been added to {bucket_name},
             in files {list_of_table_data_uploaded}"""
-        }
+    }
