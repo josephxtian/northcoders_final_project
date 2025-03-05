@@ -97,16 +97,14 @@ def reformat_data_to_json(operational_data, column_headings):
 
 
 def get_file_contents_of_last_uploaded(s3_client, bucket_name, table):
-    file_data = s3_client.get_object(
-        Bucket=bucket_name, Key=f"{table}/last_updated.txt"
-    )
-    file_with_latest_data = file_data["Body"].read().decode("utf-8")
+    file_data = s3_client.get_object(Bucket=bucket_name,
+                                     Key=f'last_updated/{table}.txt')
+    file_with_latest_data = file_data['Body'].read().decode('utf-8')
     file_data = s3_client.get_object(Bucket=bucket_name,
                                      Key=file_with_latest_data)
-    data = file_data["Body"].read().decode("utf-8")
+    data = file_data['Body'].read().decode('utf-8')
     file_content = json.loads(data)
-    return file_content
-
+    return (file_content)
 
 def update_data_to_s3_bucket(
     s3_client,
@@ -118,33 +116,24 @@ def update_data_to_s3_bucket(
 ):
     list_of_table_data_uploaded = []
     for table in list_of_tables():
-        last_data_uploaded = get_file_contents_of_last_uploaded(
-            s3_client, bucket_name, table
-        )
-        last_updated_date = datetime.strptime(
-            "1900-11-03T14:20:52.186000", "%Y-%m-%dT%H:%M:%S.%f"
-        )
+        last_data_uploaded = get_file_contents_of_last_uploaded(s3_client, bucket_name,table)
+        last_updated_date =datetime.strptime('1900-11-03T14:20:52.186000', '%Y-%m-%dT%H:%M:%S.%f') 
+
         for row in last_data_uploaded:
-            data_from_s3 = datetime.strptime(
-                row["last_updated"], "%Y-%m-%dT%H:%M:%S.%f"
-            )
+            data_from_s3 = datetime.strptime(row["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
             if data_from_s3 > last_updated_date:
                 last_updated_date = data_from_s3
         db_run_column = db.run(
             f""" SELECT * FROM {identifier(table)}
-                WHERE last_updated > {literal(last_updated_date)};"""
+            WHERE last_updated > {literal(last_updated_date)};"""
         )
         columns = [col["name"] for col in db.columns]
-        additional_data_from_op_db = reformat_data_to_json(db_run_column,
-                                                           columns)
-
+        additional_data_from_op_db = reformat_data_to_json(
+            db_run_column, columns)
         if additional_data_from_op_db:
             data_to_upload = [additional_data_from_op_db[0]]
             if len(additional_data_from_op_db) == 1:
-                date_updated = datetime.strptime(
-                    additional_data_from_op_db[0]["last_updated"],
-                    "%Y-%m-%dT%H:%M:%S.%f",
-                )
+                date_updated = datetime.strptime(additional_data_from_op_db[0]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                 year = date_updated.year
                 month = date_updated.month
                 day = date_updated.day
@@ -155,16 +144,13 @@ def update_data_to_s3_bucket(
                     Body=json.dumps(data_to_upload)
                 )
                 s3_client.put_object(
-                    Bucket=bucket_name, Key=f"{table}/last_updated.txt",
+                    Bucket=bucket_name, Key=f"last_updated/{table}.txt",
                     Body=object_key
                 )
             for i in range(1, len(additional_data_from_op_db)):
                 if i == len(additional_data_from_op_db) - 1:
                     data_to_upload.append(additional_data_from_op_db[i])
-                    date_updated = datetime.strptime(
-                        additional_data_from_op_db[i]["last_updated"],
-                        "%Y-%m-%dT%H:%M:%S.%f",
-                    )
+                    date_updated = datetime.strptime(additional_data_from_op_db[i]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                     year = date_updated.year
                     month = date_updated.month
                     day = date_updated.day
@@ -177,21 +163,15 @@ def update_data_to_s3_bucket(
                     )
                     s3_client.put_object(
                         Bucket=bucket_name,
-                        Key=f"{table}/last_updated.txt",
+                        Key=f"last_updated/{table}.txt",
                         Body=object_key,
                     )
-
-                elif additional_data_from_op_db[i]["last_updated"] == (
-                    additional_data_from_op_db[i - 1]["last_updated"]
+                elif additional_data_from_op_db[i]["last_updated"] == (additional_data_from_op_db[i - 1]["last_updated"]
                 ):
                     data_to_upload.append(additional_data_from_op_db[i])
-                elif additional_data_from_op_db[i]["last_updated"] != (
-                    additional_data_from_op_db[i - 1]["last_updated"]
+                elif additional_data_from_op_db[i]["last_updated"] != (additional_data_from_op_db[i - 1]["last_updated"]
                 ):
-                    date_updated = datetime.strptime(
-                        additional_data_from_op_db[i - 1]["last_updated"],
-                        "%Y-%m-%dT%H:%M:%S.%f",
-                    )
+                    date_updated = datetime.strptime(additional_data_from_op_db[i - 1]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                     year = date_updated.year
                     month = date_updated.month
                     day = date_updated.day
@@ -204,8 +184,8 @@ def update_data_to_s3_bucket(
                     )
                     data_to_upload = [additional_data_from_op_db[i]]
             list_of_table_data_uploaded.append(table)
-    return {
-            "message":
-            f"""data has been added to {bucket_name},
+    if additional_data_from_op_db:
+        return {
+        "message": f"""data has been added to {bucket_name},
             in files {list_of_table_data_uploaded}"""
-    }
+        }
