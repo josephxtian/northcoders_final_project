@@ -3,8 +3,6 @@ import pytest
 import os
 import boto3
 from moto import mock_aws
-from utils.utils_for_ingestion import reformat_data_to_json, list_of_tables,\
-    get_file_contents_of_last_uploaded
 from unittest.mock import patch, Mock
 from pprint import pprint
 import uuid
@@ -35,34 +33,22 @@ def bucket(s3_client):
     s3_client.put_object(Bucket=bucket_name,Key=object_key1,Body=file1)
     s3_client.put_object(Bucket=bucket_name,Key=object_key2,Body=file2)
     return bucket_name
-
-def test_list():
-    return [
+test_list = [
         {'address_id': 1,'address_line_1': '6826 Herzog Via', 'last_updated': '2025-02-27 9:13:32' },
         {'address_id': 2,'address_line_1': '6827 Herzog Via', 'last_updated': '2025-02-27 10:13:32' },
         {'address_id': 3,'address_line_1': '6828 Herzog Via', 'last_updated': '2025-02-27 12:13:32' }
     ]
-
 def test_func(test_list):
     return sorted(test_list, key=lambda d: d["address_id"])
 class TestUploadsDataWithTimeStamp:
     @pytest.mark.it("unit test: retreieves list of files from S3 bucket")
     def test_retreives_list_of_files(self, s3_client, bucket):
-        bucket_name = f"test-bucket-{uuid.uuid4()}"
-        
-        test_list = [
-        {'address_id': 1,'address_line_1': '6826 Herzog Via', 'last_updated': '2025-02-27 9:13:32' },
-        {'address_id': 2,'address_line_1': '6827 Herzog Via', 'last_updated': '2025-02-27 10:13:32' },
-        {'address_id': 3,'address_line_1': '6828 Herzog Via', 'last_updated': '2025-02-27 12:13:32' }
-    ]
+        bucket_name = 'test_bucket'
         mock_reformat_data_to_json = Mock()
         mock_reformat_data_to_json.return_value = test_list
-        
         update_data_to_s3_bucket(s3_client, bucket_name, test_list, mock_reformat_data_to_json, get_file_contents_of_last_uploaded )
-        data_on_files_from_s3 = s3_client.list_objects_v2(Bucket= bucket_name)
-
+        data_on_files_from_s3 = s3_client.list_objects_v2(Bucket= bucket)
         assert data_on_files_from_s3['KeyCount'] ==3
-        
     # @pytest.mark.it("unit test: checks the data retreieved from s3 bucket")
     # def test_data_retreived_from_s3(s3, bucket, s3_client):
     #     data_on_files_from_s3 = s3_client.list_objects_v2(Bucket=bucket, Prefix="address")
