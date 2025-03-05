@@ -16,7 +16,7 @@ dimensions_tables_creation = {
   "quarter" int NOT NULL
 );''',
 
-"dim_staff":
+  "dim_staff":
 '''CREATE TABLE "dim_staff" (
   "staff_id" int PRIMARY KEY NOT NULL,
   "first_name" varchar NOT NULL,
@@ -26,7 +26,7 @@ dimensions_tables_creation = {
   "email_address" email_address NOT NULL
 );''',
 
-"dim_location":
+  "dim_location":
 '''CREATE TABLE "dim_location" (
   "location_id" int PRIMARY KEY NOT NULL,
   "address_line_1" varchar NOT NULL,
@@ -38,14 +38,14 @@ dimensions_tables_creation = {
   "phone" varchar NOT NULL
 );''',
 
-"dim_currency":
+  "dim_currency":
 '''CREATE TABLE "dim_currency" (
   "currency_id" int PRIMARY KEY NOT NULL,
   "currency_code" varchar NOT NULL,
   "currency_name" varchar NOT NULL
 );''',
 
-"dim_design":
+  "dim_design":
 '''CREATE TABLE "dim_design" (
   "design_id" int PRIMARY KEY NOT NULL,
   "design_name" varchar NOT NULL,
@@ -53,7 +53,7 @@ dimensions_tables_creation = {
   "file_name" varchar NOT NULL
 );''',
 
-"dim_counterparty":
+  "dim_counterparty":
 '''CREATE TABLE "dim_counterparty" (
   "counterparty_id" int PRIMARY KEY NOT NULL,
   "counterparty_legal_name" varchar NOT NULL,
