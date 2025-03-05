@@ -68,7 +68,7 @@ class TestMakeTemporaryTables:
          "last_updated": "2022-11-03T14:20:51.563000"}]}
         db = connect_to_db()
         result = make_temporary_tables(db,test_input)
-        assert result[0] == ["staff_id","first_name","last_name", "department_id","email_address","created_at","last_updated"]
+        assert result[1][0] == ["staff_id","first_name","last_name", "department_id","email_address","created_at","last_updated"]
         close_db_connection(db)
 
 
@@ -143,4 +143,26 @@ class TestMakeTemporaryTables:
         assert result_staff[0][6] == '2022-11-03T14:20:51.563000'
         assert result_dep[0][1] == 'Sales'
         assert result_dep[0][5] == '2022-11-03T14:20:49.962000'
+        close_db_connection(db)
+
+    def test_created_table_names_returned(self):
+        test_input = {"staff":[
+        {"staff_id": 1,
+         "first_name": "Jeremie",
+         "last_name": "Franey",
+         "department_id": 2,
+         "email_address": "jeremie.franey@terrifictotes.com",
+         "created_at": "2022-11-03T14:20:51.563000",
+         "last_updated": "2022-11-03T14:20:51.563000"}],
+         "department": [
+        {"department_id": 1,
+         "department_name": "Sales",
+         "location": "Manchester",
+         "manager": "Richard Roma",
+         "created_at": "2022-11-03T14:20:49.962000",
+         "last_updated": "2022-11-03T14:20:49.962000"
+        }]}
+        db = connect_to_db()
+        result = make_temporary_tables(db,test_input)
+        assert result[0] == ["staff","department"]
         close_db_connection(db)
