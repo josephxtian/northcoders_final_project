@@ -3,7 +3,6 @@ from pg8000.native import literal, identifier
 from datetime import datetime
 import json
 
-
 def update_data_to_s3_bucket(
     s3_client,
     bucket_name,
@@ -17,13 +16,9 @@ def update_data_to_s3_bucket(
         last_data_uploaded = get_file_contents_of_last_uploaded(
             s3_client, bucket_name, table
         )
-        last_updated_date = datetime.strptime(
-            "1900-11-03T14:20:52.186000", "%Y-%m-%dT%H:%M:%S.%f"
-        )
+        last_updated_date = datetime.strptime("1900-11-03T14:20:52.186000", "%Y-%m-%dT%H:%M:%S.%f")
         for row in last_data_uploaded:
-            data_from_s3 = datetime.strptime(
-                row["last_updated"], "%Y-%m-%dT%H:%M:%S.%f"
-            )
+            data_from_s3 = datetime.strptime(row["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
             if data_from_s3 > last_updated_date:
                 last_updated_date = data_from_s3
         db_run_column = db.run(
@@ -33,14 +28,10 @@ def update_data_to_s3_bucket(
         columns = [col["name"] for col in db.columns]
         additional_data_from_op_db = reformat_data_to_json(
             db_run_column, columns)
-
         if additional_data_from_op_db:
             data_to_upload = [additional_data_from_op_db[0]]
             if len(additional_data_from_op_db) == 1:
-                date_updated = datetime.strptime(
-                    additional_data_from_op_db[0]["last_updated"],
-                    "%Y-%m-%dT%H:%M:%S.%f",
-                )
+                date_updated = datetime.strptime(additional_data_from_op_db[0]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                 year = date_updated.year
                 month = date_updated.month
                 day = date_updated.day
@@ -57,10 +48,7 @@ def update_data_to_s3_bucket(
             for i in range(1, len(additional_data_from_op_db)):
                 if i == len(additional_data_from_op_db) - 1:
                     data_to_upload.append(additional_data_from_op_db[i])
-                    date_updated = datetime.strptime(
-                        additional_data_from_op_db[i]["last_updated"],
-                        "%Y-%m-%dT%H:%M:%S.%f",
-                    )
+                    date_updated = datetime.strptime(additional_data_from_op_db[i]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                     year = date_updated.year
                     month = date_updated.month
                     day = date_updated.day
@@ -76,17 +64,12 @@ def update_data_to_s3_bucket(
                         Key=f"last_updated/{table}.txt",
                         Body=object_key,
                     )
-                elif additional_data_from_op_db[i]["last_updated"] == (
-                    additional_data_from_op_db[i - 1]["last_updated"]
+                elif additional_data_from_op_db[i]["last_updated"] == (additional_data_from_op_db[i - 1]["last_updated"]
                 ):
                     data_to_upload.append(additional_data_from_op_db[i])
-                elif additional_data_from_op_db[i]["last_updated"] != (
-                    additional_data_from_op_db[i - 1]["last_updated"]
+                elif additional_data_from_op_db[i]["last_updated"] != (additional_data_from_op_db[i - 1]["last_updated"]
                 ):
-                    date_updated = datetime.strptime(
-                        additional_data_from_op_db[i - 1]["last_updated"],
-                        "%Y-%m-%dT%H:%M:%S.%f",
-                    )
+                    date_updated = datetime.strptime(additional_data_from_op_db[i - 1]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                     year = date_updated.year
                     month = date_updated.month
                     day = date_updated.day
@@ -99,9 +82,9 @@ def update_data_to_s3_bucket(
                     )
                     data_to_upload = [additional_data_from_op_db[i]]
             list_of_table_data_uploaded.append(table)
-        close_db_connection(db)
-        return {
-            "message": f"""data has been added to {bucket_name},
-                 in files {list_of_table_data_uploaded}"""
-        }
     close_db_connection(db)
+    if additional_data_from_op_db:
+        return {
+        "message": f"""data has been added to {bucket_name},
+            in files {list_of_table_data_uploaded}"""
+        }
