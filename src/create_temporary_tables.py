@@ -1,3 +1,5 @@
+import re
+
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
 
 # This function will check the input is in the correct format
@@ -33,7 +35,10 @@ def make_temporary_tables(database_connection,*input_data):
             # add datatypes to column names
             column_names_with_types = []
             for name in column_names:
-                column_names_with_types.append(name + " text")
+                if name.find('_id')>=0:
+                    column_names_with_types.append(name + " int")
+                else:
+                    column_names_with_types.append(name + " text")
             database_connection.run(f'''
                 CREATE TEMPORARY TABLE {table} {str(tuple(column_names_with_types)).replace("'","")};
                 ''')

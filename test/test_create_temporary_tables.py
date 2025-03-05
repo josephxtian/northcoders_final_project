@@ -111,9 +111,9 @@ class TestMakeTemporaryTables:
         db = connect_to_db()
         make_temporary_tables(db,test_input)
         result = db.run("SELECT * FROM staff;")
-        assert result[0][0] == '1'
+        assert result[0][0] == 1
         assert result[0][6] == '2022-11-03T14:20:51.563000'
-        assert result[1][0] == '2'
+        assert result[1][0] == 2
         assert result[1][6] == '2022-11-03T14:20:51.563000'
         close_db_connection(db)
 
@@ -139,7 +139,7 @@ class TestMakeTemporaryTables:
         make_temporary_tables(db,test_input)
         result_staff = db.run("SELECT * FROM staff;")
         result_dep = db.run("SELECT * FROM department;")
-        assert result_staff[0][0] == '1'
+        assert result_staff[0][0] == 1
         assert result_staff[0][6] == '2022-11-03T14:20:51.563000'
         assert result_dep[0][1] == 'Sales'
         assert result_dep[0][5] == '2022-11-03T14:20:49.962000'
