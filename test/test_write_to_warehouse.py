@@ -12,6 +12,7 @@ import psycopg2
 import botocore.exceptions
 
 
+
 # @pytest.fixture
 # def mock_db_connection():
 #     with patch("psycopg2.connect") as mock_connect:

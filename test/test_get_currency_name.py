@@ -1,4 +1,4 @@
-from get_currency_name import get_currency_details
+from northcoders_final_project_25.src.get_currency_name import get_currency_details
 
 def test_valid_id_1():
     currency_id = 1
