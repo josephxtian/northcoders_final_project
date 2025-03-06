@@ -10,7 +10,7 @@ import io
 
 TEST_PROCESSED_BUCKET = "test-processed-bucket"
 TEST_SOURCE_FILE = "raw_data_2024-02-25.json"
-TEST_DATA = [
+TEST_DATA_FRAME = pd.DataFrame([
     {
         "sales_order_id": 1001,
         "created_date": "2024-02-20",
@@ -29,6 +29,7 @@ TEST_DATA = [
         "source_file": TEST_SOURCE_FILE  # Ensuring traceability the will be used for eventual filename
     }
 ]
+)
 
 @pytest.fixture
 def set_env():
@@ -58,7 +59,7 @@ def test_file_successfully_added(mock_boto_client, set_env):
     mock_s3 = MagicMock()
     mock_boto_client.return_value = mock_s3
 
-    write_schema_to_processed(TEST_DATA)
+    write_schema_to_processed(TEST_DATA_FRAME)
 
     args, kwargs = mock_s3.put_object.call_args
 
@@ -81,7 +82,7 @@ def test_relevant_exception_is_raised(mock_boto_client, set_env):
     mock_s3.put_object.side_effect = Exception("S3 Upload Failed")
 
     with pytest.raises(Exception, match="S3 Upload Failed"):
-        write_schema_to_processed(TEST_DATA)
+        write_schema_to_processed(TEST_DATA_FRAME)
 
     
     # assert put object only called once for each file
