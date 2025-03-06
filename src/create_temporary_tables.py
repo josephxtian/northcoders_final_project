@@ -1,10 +1,3 @@
-import re
-from src.connection import connect_to_db, close_db_connection
-from src.get_currency_name import get_currency_details
-from ingestion_to_processed_bucket.dim_date_function import extract_date_info_from_dim_date
-from pg8000.native import Connection
-from dotenv import load_dotenv
-
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
 load_dotenv()
 
@@ -32,13 +25,16 @@ def check_formatting_of_input(*input_data):
 
 # This function will import incoming information into temporary tables
 # Sourcing table headers and table name from input
-# It will return a list of lists containing column headers
+# It will return a list of names of tables created 
+# and a list of lists containing column headers for each table in order
 def make_temporary_tables(database_connection,*input_data):
     # create each table
     column_headers_list = []
     for data in input_data:
         # get table name
         table_names = [*data]
+        if not table_names:
+            raise Exception("No tables created")
         for table in table_names:
             # get column names
             column_names = data[table][0].keys()
@@ -53,8 +49,11 @@ def make_temporary_tables(database_connection,*input_data):
                 CREATE TEMPORARY TABLE {table} {str(tuple(column_names_with_types)).replace("'","")};
                 ''')
             
-            # populate table with data
+            # populate table with raw data
             for row in data[table]:
+                for item in row:
+                    if not row[item]:
+                        raise Exception(f"Empty value found in {table} table under {item} column heading. Empty cells are not permitted.")
                 database_connection.run(f'''
                 INSERT INTO {table}
                 VALUES {tuple(row.values())};
