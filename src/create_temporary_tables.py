@@ -4,12 +4,33 @@ from src.get_currency_name import get_currency_details
 from ingestion_to_processed_bucket.dim_date_function import extract_date_info_from_dim_date
 from pg8000.native import Connection
 from dotenv import load_dotenv
+import os
+from pg8000.native import Connection
+import pg8000
 
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
-load_dotenv()
+load_dotenv(dotenv_path='../northcoders_final_project_25')
 
 def create_connection():
-    return connect_to_db()
+    host = os.getenv("DB_HOST")
+    port = os.getenv("DB_PORT")
+    database = os.getenv("DB_NAME")
+    user = os.getenv("DB_USER")
+    password = os.getenv("DB_PASSWORD")
+
+    if not all([host, port, database, user, password]):
+        raise ValueError("One or more required database environment variables are missing")
+
+
+    connection = pg8000.connect(
+        host=host,
+        port=int(port),
+        user=user,
+        password=password,
+        database=database
+    )
+    
+    return connection
 
 
     # This function will check the input is in the correct format

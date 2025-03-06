@@ -10,34 +10,42 @@ def set_up_dims_table(database_connection,table_names):
         database_connection.run(f"DROP TABLE IF EXISTS {dim_table};")
     # create list of tables to be created from 
     dim_tables_to_be_created = []
+
     for dim_table in dimensions_tables_creation:
       if all(dependent in table_names for dependent in list(dimensions_tables_creation[dim_table][1:])):
         dim_tables_to_be_created.append(dim_table)
+
+    if not dim_tables_to_be_created:
+      raise Exception("Not enough data to create any dim tables, please ensure adequate data has been provided")
+
     for table in dim_tables_to_be_created:
         database_connection.run(f"CREATE TEMPORARY TABLE {dimensions_tables_creation[table][0]};")
     return dim_tables_to_be_created
 
-def put_info_into_dims_schema(database_connection,dim_tables_created, date_str, currency_id):
+def put_info_into_dims_schema(database_connection,dim_tables_created, date_id, currency_id):
 
     dimension_value_rows = {}
     # use select statement to choose information required for star schema
     for table in dim_tables_created:
-        if table == "dim_date":
-          date_info = extract_date_info_from_dim_date(date_str)
-          print(f"Extracted Date Info for {table}: {date_info}")
-        elif table == "dim_currency":
-            get_currency = get_currency_details(currency_id)
-            print(f"Currency details for {table}: {currency_id}")
-        dimension_value_rows[table] =  database_connection.run(f'''
-        INSERT INTO {table} {str(tuple(dim_tables_column_headers[table])).replace("'","")}
-        {dimensions_insertion_queries[table]}
-        RETURNING *;
-        ''')
-    print(f'''
-        INSERT INTO {table} {str(tuple(dim_tables_column_headers[table])).replace("'","")}
-        {dimensions_insertion_queries[table]}
-        RETURNING *;
-        ''')
+        if table == "dim_date" or table == "dim_currency":
+          if table not in dim_tables_column_headers:
+              raise KeyError(f"Missing column headers for table: {table}")
+
+          if table == "dim_date":
+            date_info = extract_date_info_from_dim_date(date_id)
+            print(f"Extracted Date Info for {table}: {date_info}")
+          elif table == "dim_currency":
+              get_currency = get_currency_details(currency_id)
+              print(f"Currency details for {table}: {currency_id}")
+
+          query = f'''
+            INSERT INTO {table} ({', '.join(dim_tables_column_headers)})
+            {dimensions_insertion_queries[table]}
+            RETURNING *;
+            '''
+          
+          dimension_value_rows[table] =  database_connection.run(query)
+          print(f"Inserted rows into {table}: {dimension_value_rows[table]}")
         
     # return as variable
     return dimension_value_rows
@@ -48,8 +56,11 @@ def put_info_into_dims_schema(database_connection,dim_tables_created, date_str, 
 # value[0] = headers
 # value[1:] = dependencies
 # for use in python, but written in SQL.
+
+
+
 dimensions_tables_creation = {
-  "dim_date":[
+  "dim_date": [
 '''"dim_date" (
   "date_id" date PRIMARY KEY NOT NULL,
   "year" int NOT NULL,
@@ -61,7 +72,7 @@ dimensions_tables_creation = {
   "quarter" int NOT NULL
 );''',"sales_order"],
 
-"dim_staff":[
+"dim_staff": [
 '''"dim_staff" (
   "staff_id" int PRIMARY KEY NOT NULL,
   "first_name" varchar NOT NULL,
@@ -113,7 +124,8 @@ dimensions_tables_creation = {
 }
 
 
-dim_tables_column_headers = {"dim_date":
+dim_tables_column_headers = {
+   "dim_date":
   ["date_id",
   "year",
   "month",
