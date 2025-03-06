@@ -22,13 +22,16 @@ def check_formatting_of_input(*input_data):
 
 # This function will import incoming information into temporary tables
 # Sourcing table headers and table name from input
-# It will return a list of lists containing column headers
+# It will return a list of names of tables created 
+# and a list of lists containing column headers for each table in order
 def make_temporary_tables(database_connection,*input_data):
     # create each table
     column_headers_list = []
     for data in input_data:
         # get table name
         table_names = [*data]
+        if not table_names:
+            raise Exception("No tables created")
         for table in table_names:
             # get column names
             column_names = data[table][0].keys()
