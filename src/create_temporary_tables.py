@@ -1,8 +1,18 @@
 import re
+from src.connection import connect_to_db, close_db_connection
+from src.get_currency_name import get_currency_details
+from ingestion_to_processed_bucket.dim_date_function import extract_date_info_from_dim_date
+from pg8000.native import Connection
+from dotenv import load_dotenv
 
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
+load_dotenv()
 
-# This function will check the input is in the correct format
+def create_connection():
+    return connect_to_db()
+
+
+    # This function will check the input is in the correct format
 # Dictionary containing list of dictionaries (multiple allowed)
 def check_formatting_of_input(*input_data):
     # check input is in correct format
@@ -56,3 +66,5 @@ def make_temporary_tables(database_connection,*input_data):
             column_headers_list.append(column_headers)
     # return a list of column header lists
     return table_names,column_headers_list
+
+
