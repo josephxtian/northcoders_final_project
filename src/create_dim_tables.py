@@ -1,5 +1,6 @@
 import pg8000.native
 from s3_read_function.s3_read_function import read_file_from_s3
+import re
 
 # This function will set up the dimensions tables
 def set_up_dims_table(database_connection,table_names):
@@ -16,7 +17,7 @@ def set_up_dims_table(database_connection,table_names):
       raise Exception("Not enough data to create any dim tables, please ensure adequate data has been provided")
     # create dim tables that can be created
     for table in dim_tables_created:
-        database_connection.run(f"CREATE TEMPORARY TABLE {dimensions_tables_creation[table][0]};")
+        database_connection.run(f"CREATE TEMPORARY TABLE \"{table}\" ({dimensions_tables_creation[table][0]});")
     # return the names of dim tables created
     return dim_tables_created
 
@@ -33,7 +34,7 @@ def put_info_into_dims_schema(database_connection,dim_tables_created):
            raise Exception("Dimension table names requested are not valid")
         dimension_value_rows[table] =  database_connection.run(f'''
         INSERT INTO {table}
-        {dimensions_insertion_queries[table]}
+        SELECT {dimensions_insertion_queries[table]}
         RETURNING *;
         ''')
     # raise error if dimension_value_rows remains empty
@@ -49,8 +50,7 @@ def put_info_into_dims_schema(database_connection,dim_tables_created):
 # value[1:] = dependencies
 # for use in python, but written in SQL.
 dimensions_tables_creation = {
-  "dim_date":[
-'''"dim_date" (
+  "dim_date":['''
   "date_id" date PRIMARY KEY NOT NULL,
   "year" int NOT NULL,
   "month" int NOT NULL,
@@ -59,20 +59,18 @@ dimensions_tables_creation = {
   "day_name" varchar NOT NULL,
   "month_name" varchar NOT NULL,
   "quarter" int NOT NULL
-);''',"sales_order"],
+''',"sales_order"],
 
-"dim_staff":[
-'''"dim_staff" (
+"dim_staff":['''
   "staff_id" int PRIMARY KEY NOT NULL,
   "first_name" varchar NOT NULL,
   "last_name" varchar NOT NULL,
   "department_name" varchar NOT NULL,
   "location" varchar NOT NULL,
   "email_address" varchar NOT NULL
-);''',"staff","department"],
+''',"staff","department"],
 
-"dim_location":[
-'''"dim_location" (
+"dim_location":['''
   "location_id" int PRIMARY KEY NOT NULL,
   "address_line_1" varchar NOT NULL,
   "address_line_2" varchar,
@@ -81,25 +79,22 @@ dimensions_tables_creation = {
   "postal_code" varchar NOT NULL,
   "country" varchar NOT NULL,
   "phone" varchar NOT NULL
-);''',"address"],
+''',"address"],
 
-"dim_currency":[
-'''"dim_currency" (
+"dim_currency":['''
   "currency_id" int PRIMARY KEY NOT NULL,
   "currency_code" varchar NOT NULL,
   "currency_name" varchar NOT NULL
-);''',"currency"],
+''',"currency"],
 
-"dim_design":[
-'''"dim_design" (
+"dim_design":['''
   "design_id" int PRIMARY KEY NOT NULL,
   "design_name" varchar NOT NULL,
   "file_location" varchar NOT NULL,
   "file_name" varchar NOT NULL
-);''',"design"],
+''',"design"],
 
-"dim_counterparty":[
-'''"dim_counterparty" (
+"dim_counterparty":['''
   "counterparty_id" int PRIMARY KEY NOT NULL,
   "counterparty_legal_name" varchar NOT NULL,
   "counterparty_legal_address_line_1" varchar NOT NULL,
@@ -109,87 +104,32 @@ dimensions_tables_creation = {
   "counterparty_legal_postal_code" varchar NOT NULL,
   "counterparty_legal_country" varchar NOT NULL,
   "counterparty_legal_phone_number" varchar NOT NULL
-);''',"counterparty","address"]
-}
-
-
-dim_tables_column_headers = {"dim_date":
-  ["date_id",
-  "year",
-  "month",
-  "day",
-  "day_of_week",
-  "day_name",
-  "month_name",
-  "quarter"],
-
-  "dim_staff":
-  ["staff_id",
-  "first_name",
-  "last_name" ,
-  "department_name",
-  "location",
-  "email_address"],
-
-  "dim_location":
-  ["location_id",
-  "address_line_1",
-  "address_line_2",
-  "district",
-  "city",
-  "postal_code",
-  "country",
-  "phone"],
-
-  "dim_currency":
-  ["currency_id",
-  "currency_code",
-  "currency_name"],
-
-
-  "dim_design":
-  ["design_id",
-  "design_name",
-  "file_location",
-  "file_name"],
-
-  "dim_counterparty":
-  ["counterparty_id",
-  "counterparty_legal_name",
-  "counterparty_legal_address_line_1",
-  "counterparty_legal_address_line_2",
-  "counterparty_legal_district",
-  "counterparty_legal_city",
-  "counterparty_legal_postal_code",
-  "counterparty_legal_country",
-  "counterparty_legal_phone_number"]
+''',"counterparty","address"]
 }
 
 dimensions_insertion_queries = {
 "dim_date":'''
-SELECT created_at,last_updated,agreed_delivery_date,agreed_payment_date
+created_at,last_updated,agreed_delivery_date,agreed_payment_date
 FROM sales_order
 ''',
 "dim_staff":'''
-SELECT staff_id,first_name,last_name, department.department_name,department.location,email_address
+staff_id,first_name,last_name, department.department_name,department.location,email_address
 FROM staff
 JOIN department ON staff.department_id = department.department_id
 ''',
 "dim_location":'''
-SELECT address_id,address_line_1, address_line_2,district,city,postal_code,country,phone
+address_id,address_line_1, address_line_2,district,city,postal_code,country,phone
 FROM address
 ''',
-# need to itegrate Erins currency function here
 "dim_currency":'''
-SELECT  currency_id, currency_code
+currency_id, currency_code
 FROM currency
 ''',
 "dim_design":'''
-SELECT design_id,design_name,file_location,file_name
+design_id,design_name,file_location,file_name
 FROM design
 ''',
 "dim_counterparty":'''
-SELECT 
 counterparty_id,
 counterparty_legal_name,
 address.address_line_1,

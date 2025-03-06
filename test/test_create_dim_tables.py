@@ -88,6 +88,30 @@ class TestPutInfontoDimsSchema():
         assert result["dim_staff"] == [[1, 'Jeremie', 'Franey', 'Sales', 'Manchester', 'jeremie.franey@terrifictotes.com']]
         close_db_connection(test_db)
 
+    def test_insert_table_with_empty_cell(self):
+        test_input = {"staff":[
+        {"staff_id": 1,
+         "first_name": "Jeremie",
+         "last_name": "Franey",
+         "department_id": 1,
+         "email_address": "jeremie.franey@terrifictotes.com",
+         "created_at": "2022-11-03T14:20:51.563000",
+         "last_updated": "2022-11-03T14:20:51.563000"}],
+         "department": [
+        {"department_id": 1,
+         "department_name": "Sales",
+         "location": "Manchester",
+         "manager": "Richard Roma",
+         "created_at": "2022-11-03T14:20:49.962000",
+         "last_updated": "2022-11-03T14:20:49.962000"
+        }]}
+        test_db = connect_to_db()
+        func_result = make_temporary_tables(test_db,test_input)
+        table_names = func_result[0]
+        dim_table_names = set_up_dims_table(test_db,table_names)
+        result = put_info_into_dims_schema(test_db,dim_table_names)
+        assert result["dim_staff"] == [[1, 'Jeremie', 'Franey', 'Sales', 'Manchester', 'jeremie.franey@terrifictotes.com']]
+        close_db_connection(test_db)
 
 
 # Table headers
