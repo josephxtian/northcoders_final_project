@@ -1,5 +1,5 @@
 from pg8000.native import Connection
-from password_manager import get_db_credentials
+from password_manager.password_manager import get_db_credentials
 import boto3
 import os
 
