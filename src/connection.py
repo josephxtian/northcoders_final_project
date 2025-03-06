@@ -4,15 +4,15 @@ import os
 
 
 def connect_to_db():
-    credentials = get_db_credentials(region_name="eu-west-2")
-    for key, value in credentials.items():os.environ[key] = str(value)
+    # credentials = get_db_credentials(region_name="eu-west-2")
+    # for key, value in credentials.items():os.environ[key] = str(value)
 
     return Connection(
-        user=os.getenv("user"),
-        password=os.getenv("password"),
-        database=os.getenv("database"),
-        host=os.getenv("host"),
-        port=int(os.getenv("port")),
+        user=os.environ["PG_USER"],
+        password=os.environ["PG_PASSWORD"],
+        database=os.environ["PG_DATABASE"],
+        host=os.environ["PG_HOST"],
+        port=int(os.environ["PG_PORT"]),
     )
 
 
