@@ -1,8 +1,4 @@
-import pg8000.native
-from s3_read_function.s3_read_function import read_file_from_s3
-import re
-
-# This function will set up the dimensions tables
+# This function will set up all the required empty dimensions tables
 def set_up_dims_table(database_connection,table_names):
     # delete all existing dim tables
     for dim_table in dimensions_tables_creation:
@@ -21,6 +17,8 @@ def set_up_dims_table(database_connection,table_names):
     # return the names of dim tables created
     return dim_tables_created
 
+
+# this function will populate the dimension tables
 def put_info_into_dims_schema(database_connection,dim_tables_created):
     dimension_value_rows = {}
     # use select statement to choose information required for star schema
@@ -37,6 +35,8 @@ def put_info_into_dims_schema(database_connection,dim_tables_created):
         SELECT {dimensions_insertion_queries[table]}
         RETURNING *;
         ''')
+        if dimension_value_rows[table] == []:
+          raise Exception("No paired keys to perform JOIN on")
     # raise error if dimension_value_rows remains empty
     if dimension_value_rows == {}:
        raise Exception("No rows outputted")
@@ -107,6 +107,11 @@ dimensions_tables_creation = {
 ''',"counterparty","address"]
 }
 
+
+# This is a dictionary of lists
+# key = dimensions table names
+# value = SQL SELECT query
+# for use in python, but written in SQL.
 dimensions_insertion_queries = {
 "dim_date":'''
 created_at,last_updated,agreed_delivery_date,agreed_payment_date

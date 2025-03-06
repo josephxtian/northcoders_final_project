@@ -1,5 +1,3 @@
-import re
-
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
 
 # This function will check the input is in the correct format
