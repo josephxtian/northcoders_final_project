@@ -1,9 +1,11 @@
+
 # This function will set up all the required empty dimensions tables
 def set_up_dims_table(database_connection,table_names):
     # delete all existing dim tables
     for dim_table in dimensions_tables_creation:
         database_connection.run(f"DROP TABLE IF EXISTS {dim_table};")
     # create list of tables to be created from 
+
     dim_tables_created = []
     # check dependent tables exist for each dim table
     for dim_table in dimensions_tables_creation:
@@ -20,6 +22,7 @@ def set_up_dims_table(database_connection,table_names):
 
 # this function will populate the dimension tables
 def put_info_into_dims_schema(database_connection,dim_tables_created):
+
     dimension_value_rows = {}
     # use select statement to choose information required for star schema
     for table in dim_tables_created:
@@ -40,6 +43,7 @@ def put_info_into_dims_schema(database_connection,dim_tables_created):
     # raise error if dimension_value_rows remains empty
     if dimension_value_rows == {}:
        raise Exception("No rows outputted")
+
     # return as variable
     return dimension_value_rows
 
@@ -50,7 +54,9 @@ def put_info_into_dims_schema(database_connection,dim_tables_created):
 # value[1:] = dependencies
 # for use in python, but written in SQL.
 dimensions_tables_creation = {
+
   "dim_date":['''
+
   "date_id" date PRIMARY KEY NOT NULL,
   "year" int NOT NULL,
   "month" int NOT NULL,
@@ -59,18 +65,22 @@ dimensions_tables_creation = {
   "day_name" varchar NOT NULL,
   "month_name" varchar NOT NULL,
   "quarter" int NOT NULL
+
 ''',"sales_order"],
 
 "dim_staff":['''
+
   "staff_id" int PRIMARY KEY NOT NULL,
   "first_name" varchar NOT NULL,
   "last_name" varchar NOT NULL,
   "department_name" varchar NOT NULL,
   "location" varchar NOT NULL,
   "email_address" varchar NOT NULL
+
 ''',"staff","department"],
 
 "dim_location":['''
+
   "location_id" int PRIMARY KEY NOT NULL,
   "address_line_1" varchar NOT NULL,
   "address_line_2" varchar,
@@ -79,6 +89,7 @@ dimensions_tables_creation = {
   "postal_code" varchar NOT NULL,
   "country" varchar NOT NULL,
   "phone" varchar NOT NULL
+
 ''',"address"],
 
 "dim_currency":['''
@@ -88,13 +99,16 @@ dimensions_tables_creation = {
 ''',"currency"],
 
 "dim_design":['''
+
   "design_id" int PRIMARY KEY NOT NULL,
   "design_name" varchar NOT NULL,
   "file_location" varchar NOT NULL,
   "file_name" varchar NOT NULL
+
 ''',"design"],
 
 "dim_counterparty":['''
+
   "counterparty_id" int PRIMARY KEY NOT NULL,
   "counterparty_legal_name" varchar NOT NULL,
   "counterparty_legal_address_line_1" varchar NOT NULL,
@@ -104,6 +118,7 @@ dimensions_tables_creation = {
   "counterparty_legal_postal_code" varchar NOT NULL,
   "counterparty_legal_country" varchar NOT NULL,
   "counterparty_legal_phone_number" varchar NOT NULL
+
 ''',"counterparty","address"]
 }
 
@@ -119,10 +134,12 @@ FROM sales_order
 ''',
 "dim_staff":'''
 staff_id,first_name,last_name, department.department_name,department.location,email_address
+
 FROM staff
 JOIN department ON staff.department_id = department.department_id
 ''',
 "dim_location":'''
+
 address_id,address_line_1, address_line_2,district,city,postal_code,country,phone
 FROM address
 ''',
@@ -135,6 +152,7 @@ design_id,design_name,file_location,file_name
 FROM design
 ''',
 "dim_counterparty":'''
+
 counterparty_id,
 counterparty_legal_name,
 address.address_line_1,

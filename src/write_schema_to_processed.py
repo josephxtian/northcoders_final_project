@@ -14,7 +14,7 @@ The files should be converted and saved in the s3 processed bucket in parquet fo
 
 """
 
-def write_schema_to_processed(data):
+def write_schema_to_processed(data: pd.DataFrame):
 
     s3_client = boto3.client("s3")
 
@@ -23,7 +23,7 @@ def write_schema_to_processed(data):
     if not bucket_name:
         raise ValueError("processed-bucket20250303162226216400000005 environment variable is not set")
     
-    source_file = data[0].get("source_file", "unknown_source.json")
+    source_file = data["source_file"].iloc[0] if "source_file" in data.columns else "unknown_source.json"
 
     timestamp = datetime.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
     
@@ -31,11 +31,11 @@ def write_schema_to_processed(data):
     key = f"fact_sales_orders/{source_file.replace('.json', '')}_{timestamp}.parquet"
 
     try:
-        df = pd.DataFrame(data)
         # Convert the files into parquet format
 
         buffer = io.BytesIO()
-        df.to_parquet(buffer, engine="pyarrow", index=False)
+        data.to_parquet(buffer, engine="pyarrow", index=False)
+        buffer.seek(0)
 
         # Write each file into the S3 processed bucket
         s3_client.put_object(

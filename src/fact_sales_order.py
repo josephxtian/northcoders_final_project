@@ -88,7 +88,12 @@ def transform_fact_data(raw_data):
     transformed_data = []
 # 2. query string variable that contains the sql necessary for schema conversion - possible separate function to loading using pandas
     try:
+
+        source_file = raw_data[0].get("source_file", "unknown_source.json") if raw_data else "unknown_source.json"
+
         df = pd.DataFrame(raw_data)
+        df["source_file"] = source_file
+
         df.to_sql("staging_fact_sales_order", conn, if_exists="replace", index=False)
         print("Raw JSON data loaded into `staging_fact_sales_order`")
 
@@ -97,7 +102,8 @@ def transform_fact_data(raw_data):
         INSERT INTO fact_sales_order (
             sales_order_id, created_date, created_time, last_updated_date, last_updated_time,
             sales_staff_id, counterparty_id, units_sold, unit_price, currency_id,
-            design_id, agreed_payment_date, agreed_delivery_date, agreed_delivery_location_id
+            design_id, agreed_payment_date, agreed_delivery_date, agreed_delivery_location_id,
+            source_file
         )
         SELECT 
             s.sales_order_id, 
@@ -113,7 +119,8 @@ def transform_fact_data(raw_data):
             des.design_id, 
             d3.date_id AS agreed_payment_date, 
             d4.date_id AS agreed_delivery_date, 
-            loc.location_id
+            loc.location_id,
+            s.source_file
         FROM staging_fact_sales_order s
         JOIN dim_date d1 ON s.created_date = d1.date
         JOIN dim_date d2 ON s.last_updated_date = d2.date
@@ -135,7 +142,9 @@ def transform_fact_data(raw_data):
         raise
     finally:
         close_db_connection(conn)
-    return transformed_data
+
+    transformed_df = pd.DataFrame(transformed_data)
+    return transformed_df
 
 
 
