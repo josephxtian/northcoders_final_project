@@ -46,8 +46,11 @@ def make_temporary_tables(database_connection,*input_data):
                 CREATE TEMPORARY TABLE {table} {str(tuple(column_names_with_types)).replace("'","")};
                 ''')
             
-            # populate table with data
+            # populate table with raw data
             for row in data[table]:
+                for item in row:
+                    if not row[item]:
+                        raise Exception(f"Empty value found in {table} table under {item} column heading. Empty cells are not permitted.")
                 database_connection.run(f'''
                 INSERT INTO {table}
                 VALUES {tuple(row.values())};
