@@ -1,4 +1,4 @@
-from src.create_dim_tables import set_up_dims_table,put_information_into_dims_schema
+from src.create_dim_tables import set_up_dims_table, put_info_into_dims_schema
 import pg8000.native
 from src.connection import connect_to_db, close_db_connection
 from src.create_temporary_tables import make_temporary_tables
