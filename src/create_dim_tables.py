@@ -25,7 +25,7 @@ def put_info_into_dims_schema(database_connection, dim_tables_created):
         print(f'{dimensions_tables_creation[table]}<<<<dim_table_creations')
 
         if table == "dim_date":
-          #here
+          #here here
             continue
         elif table == "dim_currency":
             continue
