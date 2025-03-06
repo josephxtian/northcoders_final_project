@@ -23,10 +23,11 @@ data "aws_iam_policy_document" "iam_cloudwatch_log_doc" {
     actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
-      "log:PutLogEvents"
+      "logs:PutLogEvents"
     ]
     resources = [
-      "${aws_cloudwatch_log_group.lambda_log.arn}"
+      "${aws_cloudwatch_log_group.lambda_log.arn}",
+      "arn:aws:logs:eu-west-2:122610499526:log-group:/aws/lambda/raw_data_to_ingestion_bucket-function:*"
     ]
   }
 }
