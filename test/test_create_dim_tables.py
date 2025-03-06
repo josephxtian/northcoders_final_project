@@ -1,4 +1,4 @@
-from src.create_dim_tables import set_up_dims_table,put_information_into_dims_schema
+from src.create_dim_tables import set_up_dims_table,put_info_into_dims_schema
 import pg8000.native
 from src.connection import connect_to_db, close_db_connection
 from src.create_temporary_tables import make_temporary_tables
@@ -12,7 +12,7 @@ class TestSetUpDimsTable:
         test_input = ["address","counterparty","currency","department","design","sales_order","staff"]
         set_up_dims_table(test_db,test_input)
         for table in dim_tables_column_headers:
-            test_db.run(f"SELECT * FROM {dim_tables_column_headers[table][0]};")
+            test_db.run(f"SELECT * FROM {table};")
             column_headers = [c['name'] for c in test_db.columns]
             assert column_headers == dim_tables_column_headers[table]
         close_db_connection(test_db)
@@ -22,12 +22,13 @@ class TestSetUpDimsTable:
         test_input = ["address","counterparty","currency","department","design","sales_order","staff"]
         set_up_dims_table(test_db,test_input)
         for table in dim_tables_column_headers:
-            result = test_db.run(f"SELECT * FROM {table[0]};")
+            print(table)
+            result = test_db.run(f"SELECT * FROM {table};")
             assert result == []
         close_db_connection(test_db)
 
 
-class TestPutInformationIntoDimsSchema():
+class TestPutInfontoDimsSchema():
     # test 
     def test_insertion_for_one_table(self):
         test_input = {"staff":[
@@ -49,8 +50,8 @@ class TestPutInformationIntoDimsSchema():
         test_db = connect_to_db()
         func_result = make_temporary_tables(test_db,test_input)
         table_names = func_result[0]
-        set_up_dims_table(test_db,table_names)
-        result = put_information_into_dims_schema(test_db)
+        dim_table_names = set_up_dims_table(test_db,table_names)
+        result = put_info_into_dims_schema(test_db,dim_table_names)
         print(result)
         assert result == 0
         close_db_connection(test_db)
