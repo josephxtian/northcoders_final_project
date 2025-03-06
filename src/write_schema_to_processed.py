@@ -3,6 +3,11 @@ import pandas as pd
 import io
 import os
 from datetime import datetime
+from utils.get_bucket import get_bucket_name
+
+bucket_name = get_bucket_name("processed-bucket")
+
+S3_BUCKET = os.getenv("S3_BUCKET", bucket_name)
 
 """
 
@@ -18,10 +23,10 @@ def write_schema_to_processed(data: pd.DataFrame):
 
     s3_client = boto3.client("s3")
 
-    bucket_name = os.getenv("processed-bucket20250303162226216400000005")
+    bucket_name = os.getenv(S3_BUCKET)
 
     if not bucket_name:
-        raise ValueError("processed-bucket20250303162226216400000005 environment variable is not set")
+        raise ValueError(f"{S3_BUCKET} environment variable is not set")
     
     source_file = data["source_file"].iloc[0] if "source_file" in data.columns else "unknown_source.json"
 

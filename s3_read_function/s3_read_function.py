@@ -1,7 +1,12 @@
 import boto3
 import os
+from utils.get_bucket import get_bucket_name
 
-S3_BUCKET = os.getenv("S3_BUCKET", "ingestion-bucket20250228065732358000000006")
+bucket_name = get_bucket_name("ingestion-bucket")
+
+print(f"✅ Retrieved bucket name: {bucket_name}")
+
+S3_BUCKET = os.getenv("S3_BUCKET", bucket_name)
 
 def read_files_from_s3(bucket_name, client=None):
     if client is None:
