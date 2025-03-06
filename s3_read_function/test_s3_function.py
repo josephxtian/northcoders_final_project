@@ -11,12 +11,11 @@ class TestReadFromS3:
         bucket_name = f"test-bucket-{uuid.uuid4().hex}"
         s3_client = boto3.client("s3", region_name="eu-west-2")
 
-
-            s3_client.create_bucket(
-                Bucket=bucket_name,
-                CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
-            )
-            yield bucket_name, s3_client  
+        s3_client.create_bucket(
+            Bucket=bucket_name,
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        yield bucket_name, s3_client  
 
     def test_get_returns_all_files(self, setup_s3):
         bucket_name, s3_client = setup_s3
