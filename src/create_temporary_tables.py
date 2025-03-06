@@ -55,4 +55,4 @@ def make_temporary_tables(database_connection,*input_data):
             column_headers = [c['name'] for c in database_connection.columns]
             column_headers_list.append(column_headers)
     # return a list of column header lists
-    return column_headers_list
+    return table_names,column_headers_list
