@@ -1,29 +1,6 @@
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
-load_dotenv(dotenv_path='../northcoders_final_project_25')
 
-def create_connection():
-    host = os.getenv("DB_HOST")
-    port = os.getenv("DB_PORT")
-    database = os.getenv("DB_NAME")
-    user = os.getenv("DB_USER")
-    password = os.getenv("DB_PASSWORD")
-
-    if not all([host, port, database, user, password]):
-        raise ValueError("One or more required database environment variables are missing")
-
-
-    connection = pg8000.connect(
-        host=host,
-        port=int(port),
-        user=user,
-        password=password,
-        database=database
-    )
-    
-    return connection
-
-
-    # This function will check the input is in the correct format
+# This function will check the input is in the correct format
 # Dictionary containing list of dictionaries (multiple allowed)
 def check_formatting_of_input(*input_data):
     # check input is in correct format
