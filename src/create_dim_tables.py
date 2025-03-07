@@ -1,11 +1,16 @@
 
+from src.dim_date_function import extract_date_info_from_dim_date
+from src.get_currency_name import get_currency_details
+import pg8000.native
+from s3_read_function.s3_read_function import read_files_from_s3
+
+
 # This function will set up all the required empty dimensions tables
 def set_up_dims_table(database_connection,table_names):
     # delete all existing dim tables
     for dim_table in dimensions_tables_creation:
         database_connection.run(f"DROP TABLE IF EXISTS {dim_table};")
     # create list of tables to be created from 
-
     dim_tables_created = []
     # check dependent tables exist for each dim table
     for dim_table in dimensions_tables_creation:
@@ -24,13 +29,17 @@ def set_up_dims_table(database_connection,table_names):
 def put_info_into_dims_schema(database_connection,dim_tables_created):
 
     dimension_value_rows = {}
-    # use select statement to choose information required for star schema
+    print(f"dim_tables_created: {dim_tables_created}")
+
     for table in dim_tables_created:
         if table == "dim_date":
-          #here
-            continue
+            print(f"Processing table: {table} with date_id: {date_id}")
+            date_info = extract_date_info_from_dim_date(date_id)
+            print(f"Extracted Date Info for {table}: {date_info}")
         elif table == "dim_currency":
-            continue
+            print(f"Processing table: {table} with currency_id: {currency_id}")
+            get_currency = get_currency_details(currency_id)
+            print(f"Currency details for {table}: {currency_id}")
         elif table not in ["dim_staff","dim_location","dim_design","dim_counterparty"]:
            raise Exception("Dimension table names requested are not valid")
         dimension_value_rows[table] =  database_connection.run(f'''
@@ -47,16 +56,15 @@ def put_info_into_dims_schema(database_connection,dim_tables_created):
     # return as variable
     return dimension_value_rows
 
-
 # This is a dictionary of lists
 # key = dimensions table names
 # value[0] = headers
 # value[1:] = dependencies
 # for use in python, but written in SQL.
+
+
 dimensions_tables_creation = {
-
   "dim_date":['''
-
   "date_id" date PRIMARY KEY NOT NULL,
   "year" int NOT NULL,
   "month" int NOT NULL,
@@ -65,22 +73,18 @@ dimensions_tables_creation = {
   "day_name" varchar NOT NULL,
   "month_name" varchar NOT NULL,
   "quarter" int NOT NULL
-
 ''',"sales_order"],
-
+  
 "dim_staff":['''
-
   "staff_id" int PRIMARY KEY NOT NULL,
   "first_name" varchar NOT NULL,
   "last_name" varchar NOT NULL,
   "department_name" varchar NOT NULL,
   "location" varchar NOT NULL,
   "email_address" varchar NOT NULL
-
 ''',"staff","department"],
 
 "dim_location":['''
-
   "location_id" int PRIMARY KEY NOT NULL,
   "address_line_1" varchar NOT NULL,
   "address_line_2" varchar,
@@ -89,7 +93,6 @@ dimensions_tables_creation = {
   "postal_code" varchar NOT NULL,
   "country" varchar NOT NULL,
   "phone" varchar NOT NULL
-
 ''',"address"],
 
 "dim_currency":['''
@@ -99,16 +102,13 @@ dimensions_tables_creation = {
 ''',"currency"],
 
 "dim_design":['''
-
   "design_id" int PRIMARY KEY NOT NULL,
   "design_name" varchar NOT NULL,
   "file_location" varchar NOT NULL,
   "file_name" varchar NOT NULL
-
 ''',"design"],
 
 "dim_counterparty":['''
-
   "counterparty_id" int PRIMARY KEY NOT NULL,
   "counterparty_legal_name" varchar NOT NULL,
   "counterparty_legal_address_line_1" varchar NOT NULL,
@@ -118,10 +118,8 @@ dimensions_tables_creation = {
   "counterparty_legal_postal_code" varchar NOT NULL,
   "counterparty_legal_country" varchar NOT NULL,
   "counterparty_legal_phone_number" varchar NOT NULL
-
 ''',"counterparty","address"]
 }
-
 
 # This is a dictionary of lists
 # key = dimensions table names
