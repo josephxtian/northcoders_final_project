@@ -18,6 +18,7 @@ print(f"Connected to database: {database_name}")
 @pytest.fixture 
 def date_id():
     return "2022-11-03T14:20:51.563000"
+ 
 
 @pytest.fixture
 def currency_id():
@@ -175,19 +176,19 @@ def mock_db_connection():
     mock_db = mock.Mock()
     return mock_db
 
-def test_process_dim_date(mock_db_connection):    
+def test_process_dim_date(mock_db_connection, date_id):    
     # Mock the function 'extract_date_info_from_dim_date' 
     with mock.patch('src.create_dim_tables.extract_date_info_from_dim_date') as mock_extract_date:
         
         mock_extract_date.return_value = {'day': 3, 'month': 11, 'year': 2022} 
 
         date_id = '2022-11-03T14:20:51.563000' 
-        dim_tables_created = ["dim_date", "dim_currency"]  
-        currency_id = 1  
+        currency_id = 1
+        dim_tables_created = ["dim_date", "dim_currency"]   
         # Mocks database connection
-        mock_db_connection.run.return_value = [{"result": "success"}]
+        mock_db_connection.run.return_value = [{"result": "success" }]
 
-        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id, currency_id)
+        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id=date_id, currency_id=currency_id)
 
         print(f"mock_extract_date.call_count: {mock_extract_date.call_count}")
         print("mock called", mock_extract_date.call_args_list)
@@ -197,24 +198,24 @@ def test_process_dim_date(mock_db_connection):
         print(mock_extract_date.return_value)
 
         assert 'dim_date' in result
-        assert result['dim_date'][0]['result'] == 'success'
+        assert result['dim_date'][0]['result'] == "success"
 
         print(f"dim_date: {result}")
 
 
-def test_process_dim_currency(mock_db_connection):
+def test_process_dim_currency(mock_db_connection, currency_id):
     
     # Mock the function 'get_currency_details' 
     with mock.patch('src.create_dim_tables.get_currency_details') as mock_get_currency:
         mock_get_currency.return_value = {"currency_code": "GBP", "currency_name": "British pound sterling"}  
 
-        date_id = '2022-11-03T14:20:51.563000'  
         dim_tables_created = ["dim_currency", "dim_date"]  
         currency_id = 1 
+        date_id = '2022-11-03T14:20:51.563000'
 
         mock_db_connection.run.return_value = [{"result": "success"}]
         
-        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id, currency_id)
+        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id=date_id, currency_id=currency_id)
 
         print(f"mock_get_currency.call_count: {mock_get_currency.call_count}")
 

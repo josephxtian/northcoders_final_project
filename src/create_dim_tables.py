@@ -25,11 +25,19 @@ def set_up_dims_table(database_connection,table_names):
     return dim_tables_created
 
 
-# this function will populate the dimension tables
-def put_info_into_dims_schema(database_connection,dim_tables_created):
 
+
+def put_info_into_dims_schema(database_connection, dim_tables_created, date_id=None, currency_id=None):
     dimension_value_rows = {}
     print(f"dim_tables_created: {dim_tables_created}")
+
+    # Ensure date_id is provided for dim_date processing
+    if 'dim_date' in dim_tables_created and date_id is None:
+        raise ValueError("date_id must be provided for dim_date processing")
+
+    # Ensure currency_id is provided for dim_currency processing
+    if 'dim_currency' in dim_tables_created and currency_id is None:
+        raise ValueError("currency_id must be provided for dim_currency processing")
 
     for table in dim_tables_created:
         if table == "dim_date":
@@ -38,23 +46,62 @@ def put_info_into_dims_schema(database_connection,dim_tables_created):
             print(f"Extracted Date Info for {table}: {date_info}")
         elif table == "dim_currency":
             print(f"Processing table: {table} with currency_id: {currency_id}")
-            get_currency = get_currency_details(currency_id)
-            print(f"Currency details for {table}: {currency_id}")
-        elif table not in ["dim_staff","dim_location","dim_design","dim_counterparty"]:
-           raise Exception("Dimension table names requested are not valid")
-        dimension_value_rows[table] =  database_connection.run(f'''
-        INSERT INTO {table}
-        SELECT {dimensions_insertion_queries[table]}
-        RETURNING *;
-        ''')
-        if dimension_value_rows[table] == []:
-          raise Exception("No paired keys to perform JOIN on")
-    # raise error if dimension_value_rows remains empty
-    if dimension_value_rows == {}:
-       raise Exception("No rows outputted")
+            currency_info = get_currency_details(currency_id)
+            print(f"Currency details for {table}: {currency_info}")
+        elif table not in ["dim_staff", "dim_location", "dim_design", "dim_counterparty"]:
+            raise Exception("Dimension table names requested are not valid")
 
-    # return as variable
+
+        # Ensure the table is inserted correctly into the database
+        dimension_value_rows[table] = database_connection.run(f'''
+            INSERT INTO {table}
+            SELECT {dimensions_insertion_queries[table]}
+            RETURNING *;
+        ''')
+
+        # Raise error if no rows were inserted
+        if not dimension_value_rows[table]:
+            raise Exception(f"No paired keys to perform JOIN on for table {table}")
+
+    # Raise error if no dimension rows were inserted
+    if not dimension_value_rows:
+        raise Exception("No rows outputted from any dimension table")
+
     return dimension_value_rows
+
+
+
+
+# this function will populate the dimension tables
+# def put_info_into_dims_schema(database_connection,dim_tables_created, date_id=None, currency_id=None):
+
+#     dimension_value_rows = {}
+#     print(f"dim_tables_created: {dim_tables_created}")
+
+#     for table in dim_tables_created:
+#         if table == "dim_date":
+#             print(f"Processing table: {table} with date_id: {date_id}")
+#             date_info = extract_date_info_from_dim_date(date_id)
+#             print(f"Extracted Date Info for {table}: {date_info}")
+#         elif table == "dim_currency":
+#             print(f"Processing table: {table} with currency_id: {currency_id}")
+#             get_currency = get_currency_details(currency_id)
+#             print(f"Currency details for {table}: {currency_id}")
+#         elif table not in ["dim_staff","dim_location","dim_design","dim_counterparty"]:
+#            raise Exception("Dimension table names requested are not valid")
+#         dimension_value_rows[table] =  database_connection.run(f'''
+#         INSERT INTO {table}
+#         SELECT {dimensions_insertion_queries[table]}
+#         RETURNING *;
+#         ''')
+#         if dimension_value_rows[table] == []:
+#           raise Exception("No paired keys to perform JOIN on")
+#     # raise error if dimension_value_rows remains empty
+#     if dimension_value_rows == {}:
+#        raise Exception("No rows outputted")
+
+#     # return as variable
+#     return dimension_value_rows
 
 # This is a dictionary of lists
 # key = dimensions table names
