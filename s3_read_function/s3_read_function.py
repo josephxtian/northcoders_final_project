@@ -1,14 +1,20 @@
 import boto3
 import os
+from utils.get_bucket import get_bucket_name
+import pprint
 
-S3_BUCKET = os.getenv("S3_BUCKET", "ingestion-bucket20250228065732358000000006")
+bucket_name = get_bucket_name("ingestion-bucket")
+
+print(f"✅ Retrieved bucket name: {bucket_name}")
+
+S3_BUCKET = os.getenv("S3_BUCKET", bucket_name)
 
 def read_files_from_s3(bucket_name, client=None):
     if client is None:
         client = boto3.client("s3") 
 
     try:
-        response = client.list_objects_v2(Bucket=bucket_name)
+        response = client.list_objects_v2(Bucket=bucket_name,MaxKeys=50)
 
         if "Contents" not in response:
             print(f"No files found in {bucket_name}")
@@ -28,9 +34,10 @@ def read_files_from_s3(bucket_name, client=None):
             file_data = file_response["Body"].read().decode("utf-8")
             
 
-            all_data[file_key] = file_data
+            all_data[file_key.split("/",1)[0]] = file_data
         
         print(" Successfully retrieved all files.")
+        pprint.pprint(all_data)
         return all_data  
 
     except Exception as e:

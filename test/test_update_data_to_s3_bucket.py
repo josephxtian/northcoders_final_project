@@ -12,6 +12,10 @@ from unittest.mock import patch, Mock
 from pprint import pprint
 import json
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 @pytest.fixture(scope="module", autouse=True)
 def aws_credentials():
@@ -44,23 +48,31 @@ class TestUploadsDataWithTimeStamp:
             
             no_of_files_before_update = s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount']
 
-            additional_data = [{
+            
+            def mock_additional_data(x,y):
+                return [{
                 "counterparty_id": 21,
                 "counterparty_legal_name": "Fahey and Sons",
                 "legal_address_id": 15,
                 "commercial_contact": "Micheal Toy",
                 "delivery_contact": "Mrs. Lucy Runolfsdottir",
-                "created_at": "2025-12-03T14:20:51.563000",  
-                "last_updated": "2025-12-03T14:20:51.563000" 
-            }]
+                "created_at": "2026-02-03T14:20:51.563000",
+                "last_updated": "2026-02-03T14:20:51.563000"
+                }]
 
-
-            mock_additional_data_last_uploaded = Mock(return_value=[{
-                "last_updated": "2025-12-03T14:20:51.563000"
+            mock_data_last_uploaded = Mock(return_value=[{
+            "counterparty_id": 20,
+            "counterparty_legal_name": "Yost, Watsica and Mann",
+            "legal_address_id": 2,
+            "commercial_contact": "Sophie Konopelski",
+            "delivery_contact": "Janie Doyle",
+            "created_at": "2025-11-03T14:20:51.563000",
+            "last_updated": "2025-11-03T14:20:51.563000"
             }])
           
-            update_data_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables, mock_additional_data_last_uploaded, 
-                                mock_reformated_data_from_db)
+            update_data_to_s3_bucket(s3_client, bucket_name, mock_list_of_tables,  
+                                mock_additional_data, mock_data_last_uploaded)
+            print(s3_client.list_objects_v2(Bucket=bucket_name))
             assert s3_client.list_objects_v2(Bucket=bucket_name)['KeyCount'] == (no_of_files_before_update +1)
 
             
@@ -90,9 +102,9 @@ class TestUploadsDataWithTimeStamp:
                 print("No JSON files found in the bucket.")
 
             print(f"Actual: {json_file_last_updated}")
-            print(f"Expected: counterparty/2025/12/3/14:20:51.563000.json")
+            print(f"Expected: counterparty/2026/2/3/14:20:51.563000.json")
 
-            assert json_file_last_updated == 'counterparty/2025/12/3/14:20:51.563000.json'
+            assert json_file_last_updated == 'counterparty/2026/2/3/14:20:51.563000.json'
 
 
             file_data = s3_client.get_object(
@@ -136,3 +148,38 @@ class TestUploadsDataWithTimeStamp:
                 assert sorted(data_from_s3_bucket, key=lambda d: d["counterparty_id"]) == \
                     sorted(expected, key=lambda d: d["counterparty_id"])
 
+class TestErrorRaising:
+    def test_returns_error_if_txt_file_empty_or_currupt(self, caplog):
+            with mock_aws():
+                bucket_name = f"test-bucket-{uuid.uuid4().hex}"
+                s3_client = boto3.client('s3')
+                s3_client.create_bucket(
+                Bucket=bucket_name,
+                CreateBucketConfiguration={'LocationConstraint':'eu-west-2'}
+                )
+                with caplog.at_level(logging.INFO):
+                    result = update_data_to_s3_bucket(
+                    s3_client,
+                    bucket_name,
+                    list_of_tables,
+                    reformat_data_to_json,
+                    get_file_contents_of_last_uploaded,
+                    )
+                    assert not result
+                    assert "NoneType" in caplog.text
+
+    def test_logs_error_when_no_bucket_found(self,caplog):
+        with mock_aws():
+            bucket_name = f"test-bucket-{uuid.uuid4().hex}"
+            s3_client = boto3.client("s3")
+            with caplog.at_level(logging.INFO):
+                result = update_data_to_s3_bucket(
+                    s3_client,
+                    bucket_name,
+                    list_of_tables,
+                    reformat_data_to_json,
+                    get_file_contents_of_last_uploaded,
+                    )
+                assert not result
+                assert "NoneType" in caplog.text
+        

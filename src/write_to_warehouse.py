@@ -7,6 +7,12 @@ import pandas as pd
 import re
 import datetime
 import io
+from utils.get_bucket import get_bucket_name
+
+bucket_name = get_bucket_name("processed-bucket")
+
+S3_BUCKET = os.getenv("S3_BUCKET", bucket_name)
+
 """
 This function should read from the s3 processed bucket then send the data to the data warehouse.
 
@@ -34,7 +40,7 @@ def read_from_s3_processed_bucket():
 
     for table in table_names:
         file_dates_list = []
-        objects = s3_client.list_objects_v2(bucket="processed-bucket20250303162226216400000005", prefix=f"{table}/")
+        objects = s3_client.list_objects_v2(bucket=S3_BUCKET , prefix=f"{table}/")
         for object in objects["Contents"]:
             key = object["Key"]
             filename_timestamp_format = "%Y-%m-%d_%H-%M-%S"
@@ -45,7 +51,7 @@ def read_from_s3_processed_bucket():
 
         latest_file = file_dates_list[0][1]
         
-        latest_file_object = s3_client.get_object(bucket="processed-bucket20250303162226216400000005", key=latest_file)
+        latest_file_object = s3_client.get_object(bucket=S3_BUCKET, key=latest_file)
 
         buffer = io.BytesIO(latest_file_object["Body"].read())
         dataframe = pd.read_parquet(buffer, engine="pyarrow")
