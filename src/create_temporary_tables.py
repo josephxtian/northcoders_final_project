@@ -1,6 +1,7 @@
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
 
-    # This function will check the input is in the correct format
+
+# This function will check the input is in the correct format
 # Dictionary containing list of dictionaries (multiple allowed)
 def check_formatting_of_input(*input_data):
     # check input is in correct format
