@@ -1,10 +1,13 @@
 import boto3
+import logging
 from botocore.exceptions import ClientError
 from datetime import datetime
 import json
 import decimal
 from pg8000.native import literal, identifier, Connection
 
+logger = logging.getLogger("MyLogger")
+logger.setLevel(logging.INFO)
 
 def get_secret():
 
@@ -20,7 +23,7 @@ def get_secret():
         get_secret_value_response = \
             client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
-        print(f"Error retrieving secret: {e}")
+        logging.error(f"Error retrieving secret: {e}")
         raise e
 
     secret = get_secret_value_response.get("SecretString")
@@ -29,9 +32,8 @@ def get_secret():
 
     try:
         db_credentials = json.loads(secret)
-        print(db_credentials)
     except json.JSONDecodeError as e:
-        print(f"Error parsing secret JSON: {e}")
+        logging.error(f"Error parsing secret JSON: {e}")
         raise
 
     return db_credentials
@@ -53,18 +55,22 @@ def lambda_handler(event, context):
         host=db_credentials.get("host"),
         port=db_credentials.get("port"),
     )
-
-    update_ingress_bucket = update_data_to_s3_bucket(
-        s3_client,
-        "ingestion-bucket20250228065732358000000006",
-        list_of_tables,
-        reformat_data_to_json,
-        get_file_contents_of_last_uploaded,
-        db,
-    )
-
-    Connection.close(db)
-    return update_ingress_bucket
+    try:
+        update_ingress_bucket = update_data_to_s3_bucket(
+            s3_client,
+            "ingestion-bucket20250228065732358000000006",
+            list_of_tables,
+            reformat_data_to_json,
+            get_file_contents_of_last_uploaded,
+            db,
+        )
+        return update_ingress_bucket
+    except Exception as e:
+        logger.error(e)
+        raise RuntimeError
+    finally:
+        Connection.close(db)
+    
 
 
 def list_of_tables():
