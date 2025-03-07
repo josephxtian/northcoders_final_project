@@ -1,4 +1,4 @@
-from ingestion_to_processed_bucket.dim_date_function import extract_date_info_from_dim_date
+from src.dim_date_function import extract_date_info_from_dim_date
 from src.get_currency_name import get_currency_details
 import pg8000.native
 from s3_read_function.s3_read_function import read_files_from_s3
@@ -25,28 +25,32 @@ def set_up_dims_table(database_connection,table_names):
 def put_info_into_dims_schema(database_connection,dim_tables_created, date_id, currency_id):
 
     dimension_value_rows = {}
-    # use select statement to choose information required for star schema
+    print(f"dim_tables_created: {dim_tables_created}")
+
     for table in dim_tables_created:
         if table == "dim_date" or table == "dim_currency":
-          if table not in dim_tables_column_headers:
-              raise KeyError(f"Missing column headers for table: {table}")
+          # if table not in dim_tables_column_headers:
+          #     raise KeyError(f"Missing column headers for table: {table}")
 
           if table == "dim_date":
+            print(f"Processing table: {table} with date_id: {date_id}")
             date_info = extract_date_info_from_dim_date(date_id)
             print(f"Extracted Date Info for {table}: {date_info}")
           elif table == "dim_currency":
-              get_currency = get_currency_details(currency_id)
-              print(f"Currency details for {table}: {currency_id}")
-
+            print(f"Processing table: {table} with currency_id: {currency_id}")
+            get_currency = get_currency_details(currency_id)
+            print(f"Currency details for {table}: {currency_id}")
+         
+                
           query = f'''
-            INSERT INTO {table} ({', '.join(dim_tables_column_headers)})
+            INSERT INTO {table} ({', '.join(dim_tables_column_headers[table])})
             {dimensions_insertion_queries[table]}
             RETURNING *;
             '''
           
           dimension_value_rows[table] =  database_connection.run(query)
           print(f"Inserted rows into {table}: {dimension_value_rows[table]}")
-        
+
     # return as variable
     return dimension_value_rows
 

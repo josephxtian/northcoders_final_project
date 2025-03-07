@@ -4,12 +4,14 @@ from src.connection import connect_to_db, close_db_connection
 from src.create_temporary_tables import make_temporary_tables
 import pytest
 from unittest import mock
-from ingestion_to_processed_bucket.dim_date_function import extract_date_info_from_dim_date
+from src.dim_date_function import extract_date_info_from_dim_date
 from src.get_currency_name import get_currency_details
+
 
 # Table headers defined at bottom of document
 
 test_db = connect_to_db()
+
 result = test_db.run("SELECT current_database();")
 print(f"Raw query result : {result}")
 database_name = result[0][0]
@@ -36,7 +38,7 @@ class TestSetUpDimsTable:
         test_input = ["address","counterparty","currency","department","design","sales_order","staff"]
         set_up_dims_table(test_db,test_input)
 
-        print(dim_tables_column_headers, 'huna<<<<<<<<<<<<<<<<<')
+        print(dim_tables_column_headers, 'here<<<<<<<<<<<<<<<<<')
 
         for table in dim_tables_column_headers:
             print(f"Querying table: {table}")
@@ -95,59 +97,60 @@ class TestPutInformationIntoDimsSchema():
         close_db_connection(test_db)
 
 
-# Mocked database connection and relevant inputs
+# Mocked database connection 
 @pytest.fixture
 def mock_db_connection():
-    mock_db = mock.MagicMock()
+    mock_db = mock.Mock()
     return mock_db
 
-
-def test_process_dim_date(mock_db_connection):
-    # Test case for 'dim_date'
-    
-    # Mock the function 'extract_date_info_from_dim_date' to return dummy data
-    with mock.patch('ingestion_to_processed_bucket.dim_date_function.extract_date_info_from_dim_date') as mock_extract_date:
-        mock_extract_date.return_value = {"year": 2022, "month": 11, "day": 3}  # mock output
-
-        # Call the method to test
-        date_str = '2022-11-03T14:20:51.563000'  # Example date string
-        dim_tables_created = ["dim_date", "dim_currency"]  # Only test for 'dim_date' here
-        currency_id = 1  # dummy currency_id
+def test_process_dim_date(mock_db_connection):    
+    # Mock the function 'extract_date_info_from_dim_date' 
+    with mock.patch('src.create_dim_tables.extract_date_info_from_dim_date') as mock_extract_date:
         
-        # Call the function you want to test (you'll have to pass this to your actual function)
-        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_str, currency_id)
+        mock_extract_date.return_value = {'day': 3, 'month': 11, 'year': 2022} 
 
-        # Check if the 'extract_date_info_from_dim_date' function was called with the correct argument
-        mock_extract_date.assert_called_once_with(date_str)
+        date_id = '2022-11-03T14:20:51.563000' 
+        dim_tables_created = ["dim_date", "dim_currency"]  
+        currency_id = 1  
+        # Mocks database connection
+        mock_db_connection.run.return_value = [{"result": "success"}]
 
-        # Test that the correct result is inserted into 'dim_date' (i.e., dimension_value_rows contains data for 'dim_date')
+        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id, currency_id)
+
+        print(f"mock_extract_date.call_count: {mock_extract_date.call_count}")
+        print("mock called", mock_extract_date.call_args_list)
+        print(f"Result: {result}")
+
+        mock_extract_date.assert_called_once_with(date_id)
+        print(mock_extract_date.return_value)
+
         assert 'dim_date' in result
-        assert result['dim_date'] == mock_extract_date.return_value
-        print(f"Test Passed for dim_date: {result}")
+        assert result['dim_date'][0]['result'] == 'success'
+
+        print(f"dim_date: {result}")
 
 
 def test_process_dim_currency(mock_db_connection):
-    # Test case for 'dim_currency'
     
-    # Mock the function 'get_currency_details' to return dummy data
-    with mock.patch('src.get_currency_name.get_currency_details') as mock_get_currency:
-        mock_get_currency.return_value = {"currency_code": "USD", "currency_name": "US Dollar"}  # mock output
+    # Mock the function 'get_currency_details' 
+    with mock.patch('src.create_dim_tables.get_currency_details') as mock_get_currency:
+        mock_get_currency.return_value = {"currency_code": "GBP", "currency_name": "British pound sterling"}  
 
-        # Call the method to test
-        date_str = '2022-11-03T14:20:51.563000'  # Example date string
-        dim_tables_created = ["dim_currency", "dim_date"]  # Only test for 'dim_currency' here
-        currency_id = 1  # dummy currency_id
+        date_id = '2022-11-03T14:20:51.563000'  
+        dim_tables_created = ["dim_currency", "dim_date"]  
+        currency_id = 1 
+
+        mock_db_connection.run.return_value = [{"result": "success"}]
         
-        # Call the function you want to test (you'll have to pass this to your actual function)
-        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_str, currency_id)
+        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id, currency_id)
 
-        # Check if the 'get_currency_details' function was called with the correct argument
+        print(f"mock_get_currency.call_count: {mock_get_currency.call_count}")
+
         mock_get_currency.assert_called_once_with(currency_id)
 
-        # Test that the correct result is inserted into 'dim_currency' (i.e., dimension_value_rows contains data for 'dim_currency')
         assert 'dim_currency' in result
-        assert result['dim_currency'] == mock_get_currency.return_value
-        print(f"Test Passed for dim_currency: {result}")
+        assert result['dim_currency'][0]['result'] == 'success'
+        print(f"dim_currency: {result}")
 
 
 # Table headers

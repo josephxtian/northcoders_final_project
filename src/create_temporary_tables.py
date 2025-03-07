@@ -1,7 +1,7 @@
 import re
 from src.connection import connect_to_db, close_db_connection
 from src.get_currency_name import get_currency_details
-from ingestion_to_processed_bucket.dim_date_function import extract_date_info_from_dim_date
+from src.dim_date_function import extract_date_info_from_dim_date
 from pg8000.native import Connection
 from dotenv import load_dotenv
 import os
