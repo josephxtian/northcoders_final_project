@@ -1,5 +1,7 @@
 import pandas as pd
-import json
+from pprint import pprint
+from s3_read_function import s3_read_function
+from utils.get_bucket import get_bucket_name
 from src.connection import connect_to_db, close_db_connection
 
 """""
@@ -18,8 +20,9 @@ dim_currency
 dim_counterparty
 
 """""
+database_connection = connect_to_db()
 
-def create_fact_sales_order_table():
+def create_fact_sales_order_table(database_connection):
     """
     Creates the fact_sales_order table
     """
@@ -60,30 +63,21 @@ def create_fact_sales_order_table():
 
     ALTER TABLE "fact_sales_order" ADD FOREIGN KEY ("agreed_delivery_location_id") REFERENCES "dim_location" ("location_id");
     """
-    conn = connect_to_db()
 
     try:
-        conn.execute(create_table_query)
+        database_connection.run(create_table_query)
         print("`fact_sales_order` created successfully.")
     except Exception as e:
         print(f"Error creating table: {e}")
         # test 3 failed as I was only printing the exception rather than raising it - changed to raise
         raise
-    finally:
-        close_db_connection(conn)
-
-if __name__ == "__main__":
-    create_fact_sales_order_table()
-    
+   
 
 # 0. AWS configuration variables set to the s3 ingestion bucket and variables for db_host, db_name, db_user,db_password
 # 1. read the raw data from the ingestion bucket. Possibly a bot3 client.get
-def transform_fact_data(raw_data):
+def transform_fact_data(database_connection,raw_data):
     # use pandas to convert raw json data to staging dataframe
 
-    
-
-    conn = connect_to_db()
     # variable that can be returned ready to be passed into s3 write L2 util function
     transformed_data = []
 # 2. query string variable that contains the sql necessary for schema conversion - possible separate function to loading using pandas
@@ -94,7 +88,7 @@ def transform_fact_data(raw_data):
         df = pd.DataFrame(raw_data)
         df["source_file"] = source_file
 
-        df.to_sql("staging_fact_sales_order", conn, if_exists="replace", index=False)
+        df.to_sql("staging_fact_sales_order", database_connection, if_exists="replace", index=False)
         print("Raw JSON data loaded into `staging_fact_sales_order`")
 
 # 3. The query string should join the fact table to the ids of each respective dim tables
@@ -134,21 +128,19 @@ def transform_fact_data(raw_data):
         RETURNING *;
         """
         # 4. The fact sales order table data should be returned ready to be passed into lambda 3 that loads into the processed bucket
-        result = conn.execute(transformation_query)
+        result = database_connection.run(transformation_query)
         transformed_data = [dict(row) for row in result.mappings()]
         print("Transformation successful")
     except Exception as e:
         print(f"Error populating table: {e}")
         raise
-    finally:
-        close_db_connection(conn)
 
     transformed_df = pd.DataFrame(transformed_data)
+    pprint(transformed_df)
     return transformed_df
 
-
-
-
-
-    
-    
+if __name__ == "__main__":
+    create_fact_sales_order_table(database_connection)
+    data_conn = connect_to_db()
+    transform_fact_data(s3_read_function(get_bucket_name("ingestion-bucket")),data_conn)
+    close_db_connection(data_conn)
