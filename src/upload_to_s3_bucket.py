@@ -1,5 +1,4 @@
 from src.connection import connect_to_db, close_db_connection
-from password_manager import get_db_credentials
 from pg8000.native import identifier
 from botocore.exceptions import ClientError
 from datetime import datetime

@@ -5,6 +5,8 @@ from utils.utils_for_ingestion import (
 )
 from src.connection import connect_to_db, close_db_connection
 import boto3
+import logging
+from unittest.mock import Mock, patch
 from pg8000.native import identifier
 import pytest
 from moto import mock_aws
@@ -107,3 +109,29 @@ class TestGetFileLastUploaded:
                 s3_client, bucket_name, "address"
             )
             assert result == json.loads(json_file)
+
+class TestRaisesException:
+    def test_get_file_raises_exception_if_not_found(self,caplog):
+        with mock_aws():
+            bucket_name = "test_bucket"
+            s3_client = boto3.client("s3")
+            s3_client.create_bucket(
+                Bucket="test_bucket",
+                CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+            )
+            with caplog.at_level(logging.INFO):
+                result = get_file_contents_of_last_uploaded(
+                s3_client, bucket_name, "address"
+                )
+                assert not result
+                assert "NoSuchKey" in caplog.text
+
+    def test_format_data_raises_exception_if_does_not_return(self,caplog):
+        data=["string of stiff",23,"asf"]
+        columns = ["col1","col2"]
+           
+        with caplog.at_level(logging.INFO):
+            result = reformat_data_to_json(data,columns) 
+            assert not result
+            assert "Error formatting the data from db" in caplog.text 
+
