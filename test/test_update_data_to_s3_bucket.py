@@ -102,9 +102,9 @@ class TestUploadsDataWithTimeStamp:
                 print("No JSON files found in the bucket.")
 
             print(f"Actual: {json_file_last_updated}")
-            print(f"Expected: counterparty/2026/2/3/14:20:51.563000.json")
+            print(f"Expected: counterparty/2026/02/03/14:20:51.563000.json")
 
-            assert json_file_last_updated == 'counterparty/2026/2/3/14:20:51.563000.json'
+            assert json_file_last_updated == 'counterparty/2026/02/03/14:20:51.563000.json'
 
 
             file_data = s3_client.get_object(
