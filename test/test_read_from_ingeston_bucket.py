@@ -1,4 +1,4 @@
-from s3_read_from_injestion_bucket import read_files_from_s3
+from s3_read_from_ingestion_bucket import read_files_from_s3
 import pytest
 import boto3
 import os

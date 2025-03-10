@@ -18,7 +18,7 @@ def read_files_from_s3(bucket_name, client=None):
     if client is None:
         client = boto3.client("s3") 
     try:
-        all_data = [] 
+        all_data = {} 
         for table in tables:
             try:
                 file_response = client.get_object(Bucket=bucket_name,
@@ -36,7 +36,7 @@ def read_files_from_s3(bucket_name, client=None):
                 #lists the next 50 files to process, from after the last file processed
                 if "Contents" not in response:
                     print(f"No files found in {bucket_name}")
-                table_data = {}
+                table_data = []
 
                 for object in response["Contents"]:
 
@@ -53,14 +53,11 @@ def read_files_from_s3(bucket_name, client=None):
                         file_data = file_response["Body"].read().decode("utf-8")
                         file_data = json.loads(file_data)
                         #if table_data exists, add the dict entries to the list of the associated table, if it doesn't create a key value pair
-                        if table_data:
-                            for dict in file_data:
-                                table_data[table].append(dict)
-                        else:
-                            table_data[table] = file_data
+                        for dict in file_data:
+                            table_data.append(dict)
                         #assign the file to the file last processed 
                         last_file_processed = file_key
-                all_data.append(table_data)  #append the table_data to the list of all data
+                all_data[table] = table_data  #append the table_data to the list of all data
             except:
                 print(f"No files to process from {table}")
                 continue
