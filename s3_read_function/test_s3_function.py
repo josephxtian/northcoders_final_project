@@ -18,21 +18,21 @@ class TestReadFromS3:
         yield bucket_name, s3_client  
 
     def test_get_returns_all_files(self, setup_s3):
-        bucket_name, s3_client = setup_s3
+        with mock_aws():
+            bucket_name, s3_client = setup_s3
+           
+            file_contents = {
+                "file_1.txt": "Hello, this is file 1",
+                "file_2.txt": "This is file 2",
+                "file_3.txt": "File 3 content here"
+            }
 
-        
-        file_contents = {
-            "file_1.txt": "Hello, this is file 1",
-            "file_2.txt": "This is file 2",
-            "file_3.txt": "File 3 content here"
-        }
+            for filename, content in file_contents.items():
+                s3_client.put_object(Bucket=bucket_name, Key=filename, Body=content)
 
-        for filename, content in file_contents.items():
-            s3_client.put_object(Bucket=bucket_name, Key=filename, Body=content)
+            response = read_files_from_s3(bucket_name, client=s3_client)
 
-        response = read_files_from_s3(bucket_name, client=s3_client)
-
-        assert response == file_contents
+            assert response == file_contents
 
     def test_get_returns_error_when_bucket_not_found(self):
         with mock_aws():  

@@ -38,11 +38,11 @@ def update_data_to_s3_bucket(
             if additional_data_from_op_db:
                 data_to_upload = [additional_data_from_op_db[0]]
                 if len(additional_data_from_op_db) == 1:
-                    date_updated = datetime.strptime(additional_data_from_op_db[0]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
-                    year = date_updated.year
-                    month = date_updated.month
-                    day = date_updated.day
-                    time = date_updated.time()
+                    date_updated = additional_data_from_op_db[0]["last_updated"]
+                    year=date_updated.split("-")[0]
+                    month=date_updated.split('-')[1]
+                    day=date_updated.split('-')[2].split('T')[0]
+                    time=date_updated.split('-')[2].split('T')[1]
                     object_key = f"{table}/{year}/{month}/{day}/{time}.json"
                     s3_client.put_object(
                         Bucket=bucket_name, Key=object_key,
@@ -55,11 +55,11 @@ def update_data_to_s3_bucket(
                 for i in range(1, len(additional_data_from_op_db)):
                     if i == len(additional_data_from_op_db) - 1:
                         data_to_upload.append(additional_data_from_op_db[i])
-                        date_updated = datetime.strptime(additional_data_from_op_db[i]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
-                        year = date_updated.year
-                        month = date_updated.month
-                        day = date_updated.day
-                        time = date_updated.time()
+                        date_updated = additional_data_from_op_db[i]["last_updated"]
+                        year = date_updated.split("-")[0]
+                        month = date_updated.split('-')[1]
+                        day = date_updated.split('-')[2].split('T')[0]
+                        time = date_updated.split('-')[2].split('T')[1]
                         object_key = f"{table}/{year}/{month}/{day}/{time}.json"
                         s3_client.put_object(
                             Bucket=bucket_name,
@@ -76,11 +76,11 @@ def update_data_to_s3_bucket(
                         data_to_upload.append(additional_data_from_op_db[i])
                     elif additional_data_from_op_db[i]["last_updated"] != (additional_data_from_op_db[i - 1]["last_updated"]
                     ):
-                        date_updated = datetime.strptime(additional_data_from_op_db[i - 1]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
-                        year = date_updated.year
-                        month = date_updated.month
-                        day = date_updated.day
-                        time = date_updated.time()
+                        date_updated = additional_data_from_op_db[i - 1]["last_updated"]
+                        year = date_updated.split("-")[0]
+                        month = date_updated.split('-')[1]
+                        day = date_updated.split('-')[2].split('T')[0]
+                        time = date_updated.split('-')[2].split('T')[1]
                         object_key = f"{table}/{year}/{month}/{day}/{time}.json"
                         s3_client.put_object(
                             Bucket=bucket_name,
