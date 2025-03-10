@@ -25,23 +25,22 @@ def read_files_from_s3(bucket_name, client=None):
                                                 Key=f'last_processed/{table}.txt')      
                 last_file_processed = file_response["Body"].read().decode("utf-8")      #name of file last processed
                 date_last_updated = last_file_processed.split("/",1)[1]             #datetime from the file
-
                 #read the txt file with json file last uploaded from that tables data, date asigned to variable
             except:
                 last_file_processed = ""
                 date_last_updated = ''     # if no last updated file, define variables and set to min
             try:
                 response = client.list_objects_v2(Prefix=table ,Bucket=bucket_name,MaxKeys=50, StartAfter= last_file_processed)
-
+                print(response)
                 #lists the next 50 files to process, from after the last file processed
                 if "Contents" not in response:
                     print(f"No files found in {bucket_name}")
                 table_data = []
-
+                print(response["Contents"])
                 for object in response["Contents"]:
-
+                    
                     file_key = object["Key"] 
-                    pprint(file_key)
+                    #pprint(file_key)
                     if file_key.split("/",1)[1] > date_last_updated:   # if the date part of the file is greater than the last processed (knock the 5 off
                         #the end for .json)
                         file_response = client.get_object(Bucket=bucket_name, Key=file_key)
@@ -76,10 +75,10 @@ def read_files_from_s3(bucket_name, client=None):
 
 # if __name__ == "__main__":
     
-start_time = datetime.now()
-print(start_time)
-all_files_data = read_files_from_s3(S3_BUCKET)
-end_time = datetime.now()
-print(end_time)
+# start_time = datetime.now()
+# print(start_time)
+# all_files_data = read_files_from_s3(S3_BUCKET)
+# end_time = datetime.now()
+# print(end_time)
 # for file_name, content in all_files_data.items():
 #     print(f"\n File: {file_name}\n{content}")
