@@ -57,6 +57,28 @@ class TestCheckFormattingOfInput:
 
 
 class TestMakeTemporaryTables:
+    def test_empty_input(self):
+        with pytest.raises(Exception,match='No tables created'):
+            test_input = {}
+            db = connect_to_db()
+            result = make_temporary_tables(db,test_input)
+            assert result == ["staff_id","first_name","last_name", "department_id","email_address","created_at","last_updated"]
+            close_db_connection(db)
+
+    def test_empty_cell(self):
+        with pytest.raises(Exception,match="Empty value found in staff table under email_address column heading. Empty cells are not permitted."):
+            test_input = {"staff":[
+            {"staff_id": 1,
+            "first_name": "Jeremie",
+            "last_name": "Franey",
+            "department_id": 2,
+            "email_address": "",
+            "created_at": "2022-11-03T14:20:51.563000",
+            "last_updated": "2022-11-03T14:20:51.563000"}]}
+            db = connect_to_db()
+            make_temporary_tables(db,test_input)
+        close_db_connection(db)
+
     def test_with_single_input_single_item(self):
         test_input = {"staff":[
         {"staff_id": 1,

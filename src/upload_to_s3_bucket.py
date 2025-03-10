@@ -1,5 +1,4 @@
 from src.connection import connect_to_db, close_db_connection
-from password_manager import get_db_credentials
 from pg8000.native import identifier
 from botocore.exceptions import ClientError
 from datetime import datetime
@@ -28,12 +27,11 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables,
                 for i in range(1, len(json_formatted_data_to_upload)):
                     if i == len(json_formatted_data_to_upload) - 1:
                         data_to_upload.append(json_formatted_data_to_upload[i])
-                        date_updated = datetime.strptime(json_formatted_data_to_upload[i]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f",
-                        )
-                        year = date_updated.year
-                        month = date_updated.month
-                        day = date_updated.day
-                        time = date_updated.time()
+                        date_updated = json_formatted_data_to_upload[i]["last_updated"]
+                        year=date_updated.split("-")[0]
+                        month=date_updated.split('-')[1]
+                        day=date_updated.split('-')[2].split('T')[0]
+                        time=date_updated.split('-')[2].split('T')[1]
                         object_key = f"""{table}/{year}/{month}/{day}/{time}.json"""
                         s3_client.put_object(
                             Bucket=bucket_name,
@@ -52,11 +50,11 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables,
                     elif (
                         json_formatted_data_to_upload[i]["last_updated"]
                         != json_formatted_data_to_upload[i - 1]["last_updated"]):
-                        date_updated = datetime.strptime(json_formatted_data_to_upload[i - 1]["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
-                        year = date_updated.year
-                        month = date_updated.month
-                        day = date_updated.day
-                        time = date_updated.time()
+                        date_updated = json_formatted_data_to_upload[i - 1]["last_updated"]
+                        year=date_updated.split("-")[0]
+                        month=date_updated.split('-')[1]
+                        day=date_updated.split('-')[2].split('T')[0]
+                        time=date_updated.split('-')[2].split('T')[1]
                         object_key = f"""{table}/{year}/{month}/{day}/{time}.json"""
                         s3_client.put_object(
                             Bucket=bucket_name,

@@ -1,4 +1,4 @@
-from ingestion_to_processed_bucket.dim_date_function import extract_date_info_from_dim_date
+from src.dim_date_function import extract_date_info_from_dim_date
 from datetime import datetime
 import unittest
 

@@ -9,6 +9,7 @@ from datetime import datetime
 import io
 from pprint import pprint
 from contextlib import closing
+
 """
 This function should read from the s3 processed bucket then send the data to the data warehouse.
 
@@ -37,6 +38,7 @@ def read_from_s3_processed_bucket(s3_client=None):
 
     for table in table_names:
         file_dates_list = []
+
         objects = s3_client.list_objects_v2(Bucket="processed-bucket20250303162226216400000005", Prefix=f"{table}/")
         pprint(objects)
 

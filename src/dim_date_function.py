@@ -5,11 +5,11 @@ from datetime import datetime
 # (date_id,year,month,day,day_of_week,day_name,month_name,quarter)
 
 
-def extract_date_info_from_dim_date(date_str):
+def extract_date_info_from_dim_date(date_id):
     try:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f")
+        date_obj = datetime.strptime(date_id, "%Y-%m-%dT%H:%M:%S.%f")
     except ValueError:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        date_obj = datetime.strptime(date_id, "%Y-%m-%d")
     
     date_id = date_obj.strftime("%Y-%m-%d")  
     year = date_obj.year
