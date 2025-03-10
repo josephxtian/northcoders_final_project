@@ -1,5 +1,7 @@
 from src.connection import connect_to_db, close_db_connection
 from pg8000.native import identifier
+from utils.utils_for_ingestion import list_of_tables,reformat_data_to_json
+import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
 import json
@@ -69,3 +71,7 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables,
 
     except ClientError:
         return {"result": "FAILURE", "message": "file could not be uploaded"}
+    
+s3_client = boto3.client("s3")
+write_to_s3_bucket(s3_client, 'ingestion-bucket20250228065732358000000006' , list_of_tables,
+                       reformat_data_to_json)
