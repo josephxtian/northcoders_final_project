@@ -24,16 +24,19 @@ def check_formatting_of_input(*input_data):
 # Sourcing table headers and table name from input
 # It will return a list of names of tables created 
 # and a list of lists containing column headers for each table in order
-def make_temporary_tables(database_connection,*input_data):
+def make_temporary_tables(database_connection,data):
     # create each table
     column_headers_list = []
-    for data in input_data:
-        # get table name
-        table_names = [*data]
-        if not table_names:
-            raise Exception("No tables created")
-        for table in table_names:
-            # get column names
+    table_names = [*data]
+    print(table_names,"<<<<TABLE_NAMES")
+    if not table_names:
+        raise Exception("No tables created")
+    for table in table_names:
+        print("TABLE>>>>>",table)
+        # get column names
+        if data[table]:
+            # print(data[table],"<<<<DATA[TABLE]")
+            # print(type(data[table]),"<<<<DATA[TABLE] type")
             column_names = list(data[table][0].keys())
             # add datatypes to column names
             column_names_with_types = []
@@ -44,29 +47,31 @@ def make_temporary_tables(database_connection,*input_data):
                     column_names_with_types.append(name + " text")
             headers_string = str(tuple(column_names_with_types)).replace("'","")
             database_connection.run(f'''
-                CREATE TEMPORARY TABLE {table} {headers_string};
+                CREATE TABLE IF NOT EXISTS {table} {headers_string};
                 ''')
-            print("TEMP TABLE CREATED")
-            
-            # populate table with raw data
-            for row in data[table]:
-                row_id_header = list(row.keys())[0]
-                database_connection.run(f'''
-                INSERT INTO {table} ({row_id_header})
-                VALUES (:row_id);
-                ''',row_id=row[row_id_header])
-                for key in row:
-                    if key !=row_id_header:
-                        database_connection.run(f'''
-                        UPDATE {identifier(table)}
-                        SET {identifier(key)} = {literal(row[key])}
-                        WHERE {identifier(row_id_header)} = {literal(row[row_id_header])}
-                        ''')
+            print(f"TABLE CREATED {table} with columns {headers_string}")
             # run a query to get headers        
             database_connection.run(f"SELECT * FROM {table}")
             # list column headers
             column_headers = [c['name'] for c in database_connection.columns]
             column_headers_list.append(column_headers)
+        else:
+            print(f"No table created for {table}")
+            # populate table with raw data
+        for row in data[table]:
+            row_id_header = list(row.keys())[0]
+            database_connection.run(f'''
+            INSERT INTO {table} ({row_id_header})
+            VALUES (:row_id);
+            ''',row_id=row[row_id_header])
+            for key in row:
+                if key !=row_id_header:
+                    database_connection.run(f'''
+                    UPDATE {identifier(table)}
+                    SET {identifier(key)} = {literal(row[key])}
+                    WHERE {identifier(row_id_header)} = {literal(row[row_id_header])}
+                    ''')
+        
     # return a list of column header lists
     return table_names,column_headers_list
 
