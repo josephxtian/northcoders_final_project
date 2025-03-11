@@ -26,7 +26,7 @@ def extract_date_info_from_dim_date(date_id):
         "month": month,
         "day": day,
         "day_of_week": day_of_week,
-        "day_of_week_name": day_of_week_name,
+        "day_name": day_of_week_name,
         "month_name": month_name,
         "quarter": quarter
     }
