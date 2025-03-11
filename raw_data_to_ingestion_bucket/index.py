@@ -64,6 +64,7 @@ def lambda_handler(event, context):
             get_file_contents_of_last_uploaded,
             db,
         )
+        logger.info("Ingestion bucket has been updated")
         return update_ingress_bucket
     except Exception as e:
         logger.error(e)
@@ -193,8 +194,7 @@ def update_data_to_s3_bucket(
                         data_to_upload = [additional_data_from_op_db[i]]
                 list_of_table_data_uploaded.append(table)
         
-        if additional_data_from_op_db:
-            logger.info("Ingestion bucket has been updated")
+        if additional_data_from_op_db:          
             return {
             "message": f"""data has been added to {bucket_name},
             in files {list_of_table_data_uploaded}"""
