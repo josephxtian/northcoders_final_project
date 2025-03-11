@@ -21,9 +21,11 @@ def update_data_to_s3_bucket(
         list_of_table_data_uploaded = []
 
         for table in list_of_tables():
+            #get the file contents of the txt file that has the last json file uploaded for that table
             last_data_uploaded = get_file_contents_of_last_uploaded(s3_client, bucket_name,table)
+            #set date to before the database was created
             last_updated_date =datetime.strptime('1900-11-03T14:20:52.186000', '%Y-%m-%dT%H:%M:%S.%f') 
-
+            #get the data from the db after the last_updated date in the last json file uploaded
             for row in last_data_uploaded:
                 data_from_s3 = datetime.strptime(row["last_updated"], "%Y-%m-%dT%H:%M:%S.%f")
                 if data_from_s3 > last_updated_date:
@@ -35,6 +37,8 @@ def update_data_to_s3_bucket(
             columns = [col["name"] for col in db.columns]
             additional_data_from_op_db = reformat_data_to_json(
                 db_run_column, columns)
+            #for the additional data, go through and create new json file for each last_updated, and when last one is updated,
+            #create a new txt file to overright the current one with the json file with the latest data
             if additional_data_from_op_db:
                 data_to_upload = [additional_data_from_op_db[0]]
                 if len(additional_data_from_op_db) == 1:

@@ -31,18 +31,14 @@ def read_files_from_s3(bucket_name, client=None):
                 date_last_updated = ''     # if no last updated file, define variables and set to min
             try:
                 response = client.list_objects_v2(Prefix=table ,Bucket=bucket_name,MaxKeys=50, StartAfter= last_file_processed)
-                print(response)
                 #lists the next 50 files to process, from after the last file processed
                 if "Contents" not in response:
                     print(f"No files found in {bucket_name}")
                 table_data = []
-                print(response["Contents"])
                 for object in response["Contents"]:
                     
                     file_key = object["Key"] 
-                    #pprint(file_key)
-                    if file_key.split("/",1)[1] > date_last_updated:   # if the date part of the file is greater than the last processed (knock the 5 off
-                        #the end for .json)
+                    if file_key.split("/",1)[1] > date_last_updated:   # not needed if using StartAfter but checks the date is after last updated
                         file_response = client.get_object(Bucket=bucket_name, Key=file_key)
                 
                         if "Body" not in file_response:
@@ -51,12 +47,12 @@ def read_files_from_s3(bucket_name, client=None):
                         #read and load the file into json
                         file_data = file_response["Body"].read().decode("utf-8")
                         file_data = json.loads(file_data)
-                        #if table_data exists, add the dict entries to the list of the associated table, if it doesn't create a key value pair
+                        #append dict to table_data list
                         for dict in file_data:
                             table_data.append(dict)
                         #assign the file to the file last processed 
                         last_file_processed = file_key
-                all_data[table] = table_data  #append the table_data to the list of all data
+                all_data[table] = table_data  # append the table_data to the list of all data
             except:
                 print(f"No files to process from {table}")
                 continue
@@ -66,7 +62,6 @@ def read_files_from_s3(bucket_name, client=None):
                             Body=last_file_processed
                         )  
         print(" Successfully retrieved all files.")
-        #pprint(all_data)
         return all_data  
 
     except Exception as e:

@@ -14,19 +14,23 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables,
     json_formatted_data_to_upload=[]
     try:
         db = connect_to_db()
-        if s3_client.list_objects_v2(Bucket=bucket_name)["KeyCount"] == 0:
+        if s3_client.list_objects_v2(Bucket=bucket_name)["KeyCount"] == 0:   #checks the bucket is empty
             for table in list_of_tables:
-                count += 1
+                count += 1                                              #count for number of tables data added to bucket
                 operational_data = db.run(
                     f"""SELECT * FROM
                                           {identifier(table)};"""
                 )
-                columns = [col["name"] for col in db.columns]
+                columns = [col["name"] for col in db.columns]           #prevent sql injection with identifier, get columns and format_data
                 json_formatted_data_to_upload = reformat_data_to_json(
                     operational_data, columns
                 )
                 data_to_upload = [json_formatted_data_to_upload[0]]
                 for i in range(1, len(json_formatted_data_to_upload)):
+                    #goes through the list of additional data to upload, appends to list
+                    #until last_updated date changes then creates a new file of the format table/yyyy/mm/dd/time.json
+                    #when it reaches the end, adds that one to a json file and also creates a txt file with last updated
+                    #json file in.
                     if i == len(json_formatted_data_to_upload) - 1:
                         data_to_upload.append(json_formatted_data_to_upload[i])
                         date_updated = json_formatted_data_to_upload[i]["last_updated"]
@@ -71,7 +75,3 @@ def write_to_s3_bucket(s3_client, bucket_name, list_of_tables,
 
     except ClientError:
         return {"result": "FAILURE", "message": "file could not be uploaded"}
-    
-s3_client = boto3.client("s3")
-write_to_s3_bucket(s3_client, 'ingestion-bucket20250228065732358000000006' , list_of_tables,
-                       reformat_data_to_json)
