@@ -152,8 +152,7 @@ Contains
 
 within the function it queries predefined list of database tables. 
 *`list_of_tables():`* 
-*`get_file_contents_of_last_uploaded():`
-* checks for the last_updated timestamp later than the most recently uploaded data (tracked via S3). For each table, it retrieves any new or updated data since the last upload and the 
+*`get_file_contents_of_last_uploaded():`* checks for the last_updated timestamp later than the most recently uploaded data (tracked via S3). For each table, it retrieves any new or updated data since the last upload and the 
 *`reformat_data_to_json():`* function is used to reformat the data into a JSON format. 
 
 The function reprocesses the data into a list of dictionaries, where each dictionary represents a row with column names as keys.
@@ -162,17 +161,12 @@ Timestamps are converted into a consistent format, and decimals are cast to floa
 *`update_data_to_s3_bucket():`* function is used for each table, if new or updated data is found, it is uploaded to an S3 bucket.The data is organized in a folder structure based on the table name and the date/time of the upload. A *`last_updated.txt`* file is updated in each table folder to store the key of the most recently uploaded data.
 
 #### updload_to_s3_bucket.py
-*`write_to_s3_bucket():`* function is used to upload the data from the list of tables in a postrgeSQL database to an s3 bucket. It connects to the database, then uses the *`list_of_tables()`
-* function to fetch the list of tables from the database. 
-SQL is used to fetch all the data from all the tables.
-*`reformat_data_to_json():`
-* is called to reformat the data into json files before uploading the data into the s3 bucket. The data is organised by year, month, day and time in the object keys.
- If an error occurs during the upload process, the function handles the error and returns an appropriate message.
+*`write_to_s3_bucket():`* function is used to upload the data from the list of tables in a postrgeSQL database to an s3 bucket. It connects to the database, then uses the *`list_of_tables()`* function to fetch the list of tables from the database. SQL is used to fetch all the data from all the tables.
+*`reformat_data_to_json():`* is called to reformat the data into json files before uploading the data into the s3 bucket. The data is organised by year, month, day and time in the object keys. If an error occurs during the upload process, the function handles the error and returns an appropriate message.
 
 
 #### write_schema_to_processed.py
-* write_schema_to_processed():
-* * function currently uses hardcoded bucket name for processed s3 bucket. This will likely need changing after each terraform destroy. Function to dynamically fetch bucket based in prefix to be substituted. Pandas is used to create a DataFrame that can then be converted into parquet format. Boto3 then used to write to a file with a dynamic name depending on source_file metadata from respective file in s3 ingestion bucket.
+* write_schema_to_processed(): * function currently uses hardcoded bucket name for processed s3 bucket. This will likely need changing after each terraform destroy. Function to dynamically fetch bucket based in prefix to be substituted. Pandas is used to create a DataFrame that can then be converted into parquet format. Boto3 then used to write to a file with a dynamic name depending on source_file metadata from respective file in s3 ingestion bucket.
 
 #### update_to_s3_bucket.py
 
@@ -181,10 +175,8 @@ SQL is used to fetch all the data from all the tables.
 
 #### fact_sales_order.py
 
-* create_fact_sales_order_table():
-* * function is called to create the fact_sales_order table and adds foreign key constraints that adhers to key relationships in raw and dim tables.
-* transform_fact_data():
-* * function that transforms raw data from s3 ingestion bucket into star schema format. Pandas used to create a staging table to contain column values found in raw json data. SQL query is then executed which adds the data to the final fact_sales_order table
+* create_fact_sales_order_table(): * function is called to create the fact_sales_order table and adds foreign key constraints that adhers to key relationships in raw and dim tables.
+* transform_fact_data(): * function that transforms raw data from s3 ingestion bucket into star schema format. Pandas used to create a staging table to contain column values found in raw json data. SQL query is then executed which adds the data to the final fact_sales_order table
 
 #### get_currency_name.py
 Takes currency_id as an argument and gives both currency_name and currency_code back.
