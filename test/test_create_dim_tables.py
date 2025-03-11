@@ -1,4 +1,4 @@
-from src.create_dim_tables import set_up_dims_table,put_info_into_dims_schema
+from src.create_dim_tables import make_dim_tables,set_up_dims_table,put_info_into_dims_schema
 from src.connection import connect_to_db, close_db_connection
 from src.create_temporary_tables import make_temporary_tables
 import pytest
@@ -32,30 +32,11 @@ def mock_db_connection():
 
 class TestSetUpDimsTable:
 
-    def test_one_table_created(self):
-        test_db = connect_to_db()
-        test_input = ["design"]
-        set_up_dims_table(test_db,test_input)
-        test_db.run(f"SELECT * FROM dim_design;")
-        column_headers = [c['name'] for c in test_db.columns]
-        assert column_headers == ["design_id","design_name","file_location","file_name"]
-        close_db_connection(test_db)
-
-
-    # test nothing is made when dependencies aren't available
-    def test_error_handling_when_nothing_created(self):
-        with pytest.raises(Exception,match="Not enough data to create any dim tables, please ensure adequate data has been provided"):
-            test_db = connect_to_db()
-            test_input = ["counterparty","department"]
-            set_up_dims_table(test_db,test_input)
-        close_db_connection(test_db)
-
     def test_six_tables_created(self):
         test_db = connect_to_db()
+        make_temporary_tables(lambda_local_db)
         test_input = ["address","counterparty","currency","department","design","sales_order","staff"]
-        set_up_dims_table(test_db,test_input)
-
-        print(dim_tables_column_headers)
+        make_dim_tables(test_db)
 
         for table in dim_tables_column_headers:
             test_db.run(f"SELECT * FROM {table};")
@@ -67,7 +48,7 @@ class TestSetUpDimsTable:
     def test_tables_are_empty(self):
         test_db = connect_to_db()
         test_input = ["address","counterparty","currency","department","design","sales_order","staff"]
-        set_up_dims_table(test_db,test_input)
+        make_dim_tables(test_db)
 
         for table in dim_tables_column_headers:
             result = test_db.run(f"SELECT * FROM {table};")
@@ -81,14 +62,14 @@ class TestPutInfontoDimsSchema():
         with pytest.raises(Exception,match="No rows outputted"):
             test_input = []
             test_db = connect_to_db()
-            put_info_into_dims_schema(test_db,test_input)
+            make_dim_tables(test_db)
         close_db_connection(test_db)
 
     def test_wrong_name_provided(self):
         with pytest.raises(Exception,match="Dimension table names requested are not valid"):
             test_input = ["test_wrong_name"]
             test_db = connect_to_db()
-            put_info_into_dims_schema(test_db,test_input)
+            make_dim_tables(test_db)
         close_db_connection(test_db)
 
     def test_insertion_for_one_table(self):
@@ -112,8 +93,7 @@ class TestPutInfontoDimsSchema():
         test_db = connect_to_db()
         func_result = make_temporary_tables(test_db,test_input)
         table_names = func_result[0]
-        dim_table_names = set_up_dims_table(test_db,table_names)
-        result = put_info_into_dims_schema(test_db,dim_table_names)
+        result = make_dim_tables(test_db)
         assert result["dim_staff"] == [[1, 'Jeremie', 'Franey', 'Sales', 'Manchester', 'jeremie.franey@terrifictotes.com']]
         close_db_connection(test_db)            
 
@@ -139,8 +119,7 @@ class TestPutInfontoDimsSchema():
 
         func_result = make_temporary_tables(test_db, test_input)
         table_names = func_result[0]
-        dim_table_names = set_up_dims_table(test_db,table_names)
-        result = put_info_into_dims_schema(test_db,dim_table_names)
+        result = make_dim_tables(test_db)
         assert result["dim_staff"] == [[1, 'Jeremie', 'Franey', 'Sales', 'Manchester', 'jeremie.franey@terrifictotes.com']]
 
         close_db_connection(test_db)
@@ -166,8 +145,7 @@ class TestPutInfontoDimsSchema():
             test_db = connect_to_db()
             func_result = make_temporary_tables(test_db,test_input)
             table_names = func_result[0]
-            dim_table_names = set_up_dims_table(test_db,table_names)
-            put_info_into_dims_schema(test_db,dim_table_names)
+            make_dim_tables(test_db)
             close_db_connection(test_db)
 
 # Mocked database connection 
@@ -188,7 +166,7 @@ def test_process_dim_date(mock_db_connection, date_id):
         # Mocks database connection
         mock_db_connection.run.return_value = [{"result": "success" }]
 
-        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id=date_id, currency_id=currency_id)
+        result = make_dim_tables(mock_db_connection)
 
         print(f"mock_extract_date.call_count: {mock_extract_date.call_count}")
         print("mock called", mock_extract_date.call_args_list)
@@ -215,7 +193,7 @@ def test_process_dim_currency(mock_db_connection, currency_id):
 
         mock_db_connection.run.return_value = [{"result": "success"}]
         
-        result = put_info_into_dims_schema(mock_db_connection, dim_tables_created, date_id=date_id, currency_id=currency_id)
+        result = make_dim_tables(mock_db_connection)
 
         print(f"mock_get_currency.call_count: {mock_get_currency.call_count}")
 

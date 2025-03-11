@@ -1,4 +1,4 @@
-from src.create_temporary_tables import make_temporary_tables, check_formatting_of_input
+from src.create_raw_tables import make_raw_tables, check_formatting_of_input
 import pytest
 from src.connection import connect_to_db, close_db_connection
 import pg8000.native
@@ -56,12 +56,12 @@ class TestCheckFormattingOfInput:
         assert result == True
 
 
-class TestMakeTemporaryTables:
+class TestMakeRawTables:
     def test_empty_input(self):
         with pytest.raises(Exception,match='No tables created'):
             test_input = {}
             db = connect_to_db()
-            result = make_temporary_tables(db,test_input)
+            result = make_raw_tables(db,test_input)
             assert result == ["staff_id","first_name","last_name", "department_id","email_address","created_at","last_updated"]
             close_db_connection(db)
 
@@ -75,27 +75,9 @@ class TestMakeTemporaryTables:
          "created_at": "2022-11-03T14:20:51.563000",
          "last_updated": "2022-11-03T14:20:51.563000"}]}
         db = connect_to_db()
-        result = make_temporary_tables(db,test_input)
+        result = make_raw_tables(db,test_input)
         assert result[1][0] == ["staff_id","first_name","last_name", "department_id","email_address","created_at","last_updated"]
         close_db_connection(db)
-
-
-    def test_table_is_temporary(self):
-        with pytest.raises(pg8000.exceptions.DatabaseError):
-            test_input = {"staff":[
-            {"staff_id": 1,
-            "first_name": "Jeremie",
-            "last_name": "Franey",
-            "department_id": 2,
-            "email_address": "jeremie.franey@terrifictotes.com",
-            "created_at": "2022-11-03T14:20:51.563000",
-            "last_updated": "2022-11-03T14:20:51.563000"}]}
-            db = connect_to_db()
-            make_temporary_tables(db,test_input)
-            close_db_connection(db)
-            db_2 = connect_to_db()
-            db_2.run("SELECT * FROM staff;")
-            close_db_connection(db)
 
 
     def test_with_single_input_multiple_item(self):
@@ -117,7 +99,7 @@ class TestMakeTemporaryTables:
             "last_updated": "2022-11-03T14:20:51.563000"
         }]}
         db = connect_to_db()
-        make_temporary_tables(db,test_input)
+        make_raw_tables(db,test_input)
         result = db.run("SELECT * FROM staff;")
         assert result[0][0] == 1
         assert result[0][6] == '2022-11-03T14:20:51.563000'
@@ -144,7 +126,7 @@ class TestMakeTemporaryTables:
          "last_updated": "2022-11-03T14:20:49.962000"
         }]}
         db = connect_to_db()
-        make_temporary_tables(db,test_input)
+        make_raw_tables(db,test_input)
         result_staff = db.run("SELECT * FROM staff;")
         result_dep = db.run("SELECT * FROM department;")
         assert result_staff[0][0] == 1
@@ -171,6 +153,6 @@ class TestMakeTemporaryTables:
          "last_updated": "2022-11-03T14:20:49.962000"
         }]}
         db = connect_to_db()
-        result = make_temporary_tables(db,test_input)
+        result = make_raw_tables(db,test_input)
         assert result[0] == ["staff","department"]
         close_db_connection(db)
