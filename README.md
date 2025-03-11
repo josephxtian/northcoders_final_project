@@ -133,19 +133,19 @@ Has policy for read access for secrets manager and attaches the policy to the ro
 
 
 
-### Key Scripts 
+## Key Scripts 
 
-## s3_read_function.py 
+#### s3_read_function.py 
 
 * Reads data from the ingress bucket and sets as a variable for use in star schema. Currently a test-bucket because lambda 1 is not finalised
 
-## password_manager.py - 
+#### password_manager.py - 
 
-## connection.py
+#### connection.py
 
 * creates connection to the database.
 
-##  raw_data_to_ingestions_bucket.py
+####  raw_data_to_ingestions_bucket.py
 
 *`The get_secret():`* function retreieves database credentials from AWS secrets manager and the credentials are used to establish a connection to the database.
 
@@ -159,7 +159,7 @@ Timestamps are converted into a consistent format, and decimals are cast to floa
 
 *`update_data_to_s3_bucket():`* function is used for each table, if new or updated data is found, it is uploaded to an S3 bucket.The data is organized in a folder structure based on the table name and the date/time of the upload. A *`last_updated.txt`* file is updated in each table folder to store the key of the most recently uploaded data.
 
-### updload_to_s3_bucket.py
+#### updload_to_s3_bucket.py
 
 *`write_to_s3_bucket():`* function is used to upload the data from the list of tables in a postrgeSQL database to an s3 bucket. It connects to the database, then uses the *`list_of_tables()`* function to fetch the list of tables from the database. 
 SQL is used to fetch all the data from all the tables.
@@ -167,25 +167,25 @@ SQL is used to fetch all the data from all the tables.
  If an error occurs during the upload process, the function handles the error and returns an appropriate message.
 
 
-## write_schema_to_processed.py
+#### write_schema_to_processed.py
 
 * write_schema_to_processed(): * function currently uses hardcoded bucket name for processed s3 bucket. This will likely need changing after each terraform destroy. Function to dynamically fetch bucket based in prefix to be substituted. Pandas is used to create a DataFrame that can then be converted into parquet format. Boto3 then used to write to a file with a dynamic name depending on source_file metadata from respective file in s3 ingestion bucket.
 
-## update_to_s3_bucket.py
+#### update_to_s3_bucket.py
 
 *`get_file_contents_of_last_uploaded():`* function is called to check the most recent uploaded data for each of the tables in the s3 bucket. SQL is used to query the database for records with a last_updated timestamp greater than the most recent timestamp stored in S3. 
  *`reformat_data_to_json():`* is called to convert the database rows into Json files. If new or updated data exists, it uploads the data to the S3 bucket, organizing it by timestamp and creating the appropriate object keys. After each upload, it updates the *`last_updated.txt`* file in the S3 bucket to store the path to the latest uploaded data for each table.
 
-## fact_sales_order.py
+#### fact_sales_order.py
 
 * create_fact_sales_order_table(): * function is called to create the fact_sales_order table and adds foreign key constraints that adhers to key relationships in raw and dim tables.
 * transform_fact_data(): * function that transforms raw data from s3 ingestion bucket into star schema format. Pandas used to create a staging table to contain column values found in raw json data. SQL query is then executed which adds the data to the final fact_sales_order table
 
-## get_currency_name.py
+#### get_currency_name.py
 Takes currency_id as an argument and gives both currency_name and currency_code back.
 
 
-### Json_data folder
+#### Json_data folder
 This folder contains all the raw data in json format. Each table is in it's own file within the folder.
 
 
