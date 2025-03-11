@@ -89,27 +89,33 @@ Terraform is used to configure AWS infrastructure. All Terraform files are store
     'export DATA_INGESTION_BUCKET=$(terraform output -raw data_ingestion_bucket)'
     'export DATA_PROCESSED_BUCKET=$(terraform output -raw data_processed_bucket)'
 
-### Key Terraform Files
+## Key Terraform Files
 
-• main.tf: Initializes Terraform workspace, manages backend state in S3 `tf-state-bucket-nc-project-352446`.
+#### main.tf :
+Initializes Terraform workspace, manages backend state in S3 `tf-state-bucket-nc-project-352446`.
 
-• cloudwatch.tf: Configures logging and error notifications. (creates a log group allowing lambda and eventbridge to log to cloudwatch
+#### loudwatch.tf: 
+Configures logging and error notifications. (creates a log group allowing lambda and eventbridge to log to cloudwatch
 send emails for lambda errors and step function failures to Ben's email (for now))
 
-• eventbridge.tf: Schedules and invokes Lambda functions. 
+#### eventbridge.tf: 
+
+Schedules and invokes Lambda functions. 
 (attachs a schedule to invoke the step function to feed into lambda 2 every 5 minutes - lambda 2 can then write to
 `nc-project-schedule`
 ingestion bucket if any changes made in rds
 attaches iam policy to evenbtridge that allows lambda to be invoked) 
 
-• data.tf: sets up some commonly used data variables.
+#### data.tf: 
+sets up some commonly used data variables.
 
-• iam.tf: Manages IAM roles and permissions. (creates IAM roles and permissions for lambda, cloudwatch logging, event bridge and statefunction.)
+#### iam.tf: Manages IAM roles and permissions. (creates IAM roles and permissions for lambda, cloudwatch logging, event bridge and statefunction.)
 
-• lambda.tf: Deploys Lambda functions, zipping and storing code in an S3 bucket. 
+#### lambda.tf: Deploys Lambda functions, zipping and storing code in an S3 bucket. 
 (creates three lambda functions and uploads the default test file `index.py` from each of the folders: `raw_data_to_ingestion_bucket`, `ingestion_to_processed_bucket`, `processed_bucket_to_warehouse`. Note the lambda file automatically zips the python code into the folder `python_zips` which is then uploaded to the `lambda-code-store-bucket` s3 bucket for execution via lambda.)
 
-• s3.tf: Creates ingestion, processing, and Lambda code storage S3 buckets. 
+#### s3.tf: 
+Creates ingestion, processing, and Lambda code storage S3 buckets. 
 (creates three s3 buckets 
 
 `ingestion-bucket<random_string>` - stores data brought in from raw database with lambda function 1.
@@ -118,18 +124,22 @@ attaches iam policy to evenbtridge that allows lambda to be invoked)
 
 `lambda-code-store-bucket<random_string>` - stores all lambda code executed on AWS.) 
 
-• secretsmanager.tf: Retrieves database credentials from AWS Secrets Manager. 
+#### secretsmanager.tf: 
+Retrieves database credentials from AWS Secrets Manager. 
 (gets the database credentials from AWS secrets manager and stores as a local variable to be used in terraform.
 
 Has policy for read access for secrets manager and attaches the policy to the role.)
 
-• stepfunction.tf: Defines a state machine for data processing workflows. 
+#### stepfunction.tf: 
+
+Defines a state machine for data processing workflows. 
 (creates a step function state machine for the lambda 2 workflow. Currently set up in test mode to execute a dummy lambda 2 code. The stepfunction is built from the `pipeline.json` file stored in the terraform directory. To update `pipeline.json` use the code view created in the console based aws statemachine setup and paste it into the file.)
 
 
-• vars.tf: Contains reusable variable definitions. Includes python runtime and naming conventions
+##### vars.tf: 
+Contains reusable variable definitions. Includes python runtime and naming conventions
 
-• rds.tf:
+#### rds.tf:
 
 
 
