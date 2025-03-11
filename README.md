@@ -109,9 +109,11 @@ attaches iam policy to evenbtridge that allows lambda to be invoked)
 #### data.tf: 
 sets up some commonly used data variables.
 
-#### iam.tf: Manages IAM roles and permissions. (creates IAM roles and permissions for lambda, cloudwatch logging, event bridge and statefunction.)
+#### iam.tf: 
+Manages IAM roles and permissions. (creates IAM roles and permissions for lambda, cloudwatch logging, event bridge and statefunction.)
 
-#### lambda.tf: Deploys Lambda functions, zipping and storing code in an S3 bucket. 
+#### lambda.tf: 
+Deploys Lambda functions, zipping and storing code in an S3 bucket. 
 (creates three lambda functions and uploads the default test file `index.py` from each of the folders: `raw_data_to_ingestion_bucket`, `ingestion_to_processed_bucket`, `processed_bucket_to_warehouse`. Note the lambda file automatically zips the python code into the folder `python_zips` which is then uploaded to the `lambda-code-store-bucket` s3 bucket for execution via lambda.)
 
 #### s3.tf: 
