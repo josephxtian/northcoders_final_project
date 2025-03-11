@@ -1,15 +1,12 @@
-
 from src.dim_date_function import extract_date_info_from_dim_date
 from src.get_currency_name import get_currency_details
-import pg8000.native
-from s3_read_function.s3_read_function import read_files_from_s3
+from pg8000.native import identifier
 
-
-# This function will set up all the required empty dimensions tables
-def set_up_dims_table(database_connection,table_names):
-    # delete all existing dim tables
-    for dim_table in dimensions_tables_creation:
-        database_connection.run(f"DROP TABLE IF EXISTS {dim_table};")
+# Create dim tables if they don't exist
+# populate dim tables with new values
+# return new values inserted
+def make_dim_tables(database_connection,table_names):
+    dimension_value_rows = {}
     # create list of tables to be created from 
     dim_tables_created = []
     # check dependent tables exist for each dim table
@@ -19,89 +16,65 @@ def set_up_dims_table(database_connection,table_names):
     if not dim_tables_created:
       raise Exception("Not enough data to create any dim tables, please ensure adequate data has been provided")
     # create dim tables that can be created
+    print("DIM_TABLES_TO_BE_CREATED>>>>>",dim_tables_created)
     for table in dim_tables_created:
-        database_connection.run(f"CREATE TEMPORARY TABLE \"{table}\" ({dimensions_tables_creation[table][0]});")
-    # return the names of dim tables created
-    return dim_tables_created
-
-
-
-
-def put_info_into_dims_schema(database_connection, dim_tables_created, date_id=None, currency_id=None):
-    dimension_value_rows = {}
-    print(f"dim_tables_created: {dim_tables_created}")
-
-    # Ensure date_id is provided for dim_date processing
-    if 'dim_date' in dim_tables_created and date_id is None:
-        raise ValueError("date_id must be provided for dim_date processing")
-
-    # Ensure currency_id is provided for dim_currency processing
-    if 'dim_currency' in dim_tables_created and currency_id is None:
-        raise ValueError("currency_id must be provided for dim_currency processing")
-
-    for table in dim_tables_created:
+        print("TABLE>>>>>",table)
+        database_connection.run(f"CREATE TABLE IF NOT EXISTS {identifier(table)} ({dimensions_tables_creation[table][0]});")
+        database_connection.run(f"SELECT * from {identifier(table)}")
+        dim_column_headers = [c['name'] for c in database_connection.columns]
         if table == "dim_date":
-            print(f"Processing table: {table} with date_id: {date_id}")
-            date_info = extract_date_info_from_dim_date(date_id)
-            print(f"Extracted Date Info for {table}: {date_info}")
+            dates = database_connection.run(f'''
+              SELECT {dimensions_insertion_queries[table]};
+              ''')
+            for date_row in dates:
+                for date in date_row:
+                    date_values = extract_date_info_from_dim_date(date)
+                    date_id = date_values["date_id"]
+                    query = f'''INSERT INTO dim_date 
+                              (date_id,year,month,day,day_of_week,day_name,month_name,quarter)
+                              VALUES (:date_id, {str(tuple(date_values.values())[1:]).replace("(","")}
+                              ON CONFLICT (date_id) DO NOTHING
+                              RETURNING *;
+                          '''
+                    date_result = database_connection.run(query,date_id=date_id)
+                    print(date_result,"<<<<<date_result")
         elif table == "dim_currency":
-            print(f"Processing table: {table} with currency_id: {currency_id}")
-            currency_info = get_currency_details(currency_id)
-            print(f"Currency details for {table}: {currency_info}")
+            currencies = database_connection.run(f'''
+              SELECT {dimensions_insertion_queries[table]};
+              ''')
+            print(currencies,"<<<<<currencies")
+            for currency in currencies:
+                print(currency,"<<<<<currency")
+                currency_values = get_currency_details(currency[0])
+                currency_id = currency_values["currency_id"]
+                print(currency_values,"currency_value")
+                query = f'''INSERT INTO dim_currency 
+                              (currency_id,currency_code,currency_name)
+                              VALUES (:currency_id, {str(tuple(currency_values.values())[1:]).replace("(","")}
+                              ON CONFLICT (currency_id) DO NOTHING
+                              RETURNING *;
+                          '''
+                currency_result = database_connection.run(query,currency_id=currency_id)
+                print(currency_result,"<<<<<currency_result")
+
         elif table not in ["dim_staff", "dim_location", "dim_design", "dim_counterparty"]:
             raise Exception("Dimension table names requested are not valid")
+        else:
+            # Ensure the table is inserted correctly into the database
+            table_id = dim_column_headers[0]
+            dimension_value_rows[table] = database_connection.run(f'''
+              INSERT INTO {identifier(table)}
+              SELECT {dimensions_insertion_queries[table]}
+              ON CONFLICT ({identifier(table_id)}) DO NOTHING
+              RETURNING *;
+              ''')
 
-
-        # Ensure the table is inserted correctly into the database
-        dimension_value_rows[table] = database_connection.run(f'''
-            INSERT INTO {table}
-            SELECT {dimensions_insertion_queries[table]}
-            RETURNING *;
-        ''')
-
-        # Raise error if no rows were inserted
-        if not dimension_value_rows[table]:
-            raise Exception(f"No paired keys to perform JOIN on for table {table}")
-
-    # Raise error if no dimension rows were inserted
-    if not dimension_value_rows:
-        raise Exception("No rows outputted from any dimension table")
-
+      # Raise error if no dimension rows were inserted
+    # if not dimension_value_rows:
+    #         raise Exception("No rows outputted from any dimension table")
+    print(dimension_value_rows)
     return dimension_value_rows
 
-
-
-
-# this function will populate the dimension tables
-# def put_info_into_dims_schema(database_connection,dim_tables_created, date_id=None, currency_id=None):
-
-#     dimension_value_rows = {}
-#     print(f"dim_tables_created: {dim_tables_created}")
-
-#     for table in dim_tables_created:
-#         if table == "dim_date":
-#             print(f"Processing table: {table} with date_id: {date_id}")
-#             date_info = extract_date_info_from_dim_date(date_id)
-#             print(f"Extracted Date Info for {table}: {date_info}")
-#         elif table == "dim_currency":
-#             print(f"Processing table: {table} with currency_id: {currency_id}")
-#             get_currency = get_currency_details(currency_id)
-#             print(f"Currency details for {table}: {currency_id}")
-#         elif table not in ["dim_staff","dim_location","dim_design","dim_counterparty"]:
-#            raise Exception("Dimension table names requested are not valid")
-#         dimension_value_rows[table] =  database_connection.run(f'''
-#         INSERT INTO {table}
-#         SELECT {dimensions_insertion_queries[table]}
-#         RETURNING *;
-#         ''')
-#         if dimension_value_rows[table] == []:
-#           raise Exception("No paired keys to perform JOIN on")
-#     # raise error if dimension_value_rows remains empty
-#     if dimension_value_rows == {}:
-#        raise Exception("No rows outputted")
-
-#     # return as variable
-#     return dimension_value_rows
 
 # This is a dictionary of lists
 # key = dimensions table names

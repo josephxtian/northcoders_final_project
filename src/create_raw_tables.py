@@ -1,17 +1,15 @@
 # BEFORE RUNNING, SET UP A LOCAL POSTGRESQL DATABASE
-import pandas as pd
 from pg8000.native import identifier, literal
 
 # This function will check the input is in the correct format
 # Dictionary containing list of dictionaries (multiple allowed)
-def check_formatting_of_input(*input_data):
+def check_formatting_of_input(input_data):
     # check input is in correct format
-    for input_dict in input_data:
-        if isinstance(input_dict,dict):
-            for item in input_dict:
-                print(input_dict[item],"<<<<<item")
-                if isinstance(input_dict[item],list):
-                    for inner_dict in input_dict[item]:
+        if isinstance(input_data,dict):
+            for item in input_data:
+                print(input_data[item],"<<<<<item")
+                if isinstance(input_data[item],list):
+                    for inner_dict in input_data[item]:
                         if isinstance(inner_dict,dict):
                             return True
                         else:
@@ -24,7 +22,7 @@ def check_formatting_of_input(*input_data):
 # Sourcing table headers and table name from input
 # It will return a list of names of tables created 
 # and a list of lists containing column headers for each table in order
-def make_temporary_tables(database_connection,data):
+def make_raw_tables(database_connection,data):
     # create each table
     column_headers_list = []
     table_names = [*data]
