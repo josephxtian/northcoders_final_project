@@ -155,6 +155,16 @@ SQL is used to fetch all the data from all the tables.
 Takes currency_id as an argument and gives both currency_name and currency_code back.
 
 
+### Contribution Guidelines
+
+• Follow the branching convention: feature/<feature-name>
+
+• Run flake8 before committing
+
+• Open a pull request for code reviews before merging
+
+
+
 
 
 
