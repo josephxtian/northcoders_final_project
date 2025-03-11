@@ -1,8 +1,52 @@
 Northcoders Final project February/March 2025
 ==========
 
-# Project Introduction
-This project aims to take information from a tote bag store's database system, format it and organise it into a data warehouse. A dashboard will then use the information from the data warehouse to create summaries to aid business insights.
+# Project Overview
+This project aims to extract data from a tote bag store's database, transform it into a structured format, and store it in a data warehouse. A dashboard will use the data warehouse to generate insights for business analysis.
+
+## Tech Stack
+
+* Python (3.10)
+
+* AWS (S3, Lambda, Step Functions, CloudWatch, Secrets Manager, RDS)
+
+* Terraform (Infrastructure as Code)
+
+* PostgreSQL
+
+* GitHub Actions (CI/CD)
+
+## CI/CD pipeline
+
+To trigger workflows:
+
+Push to main → Runs Terraform Apply
+
+Pull request to main → Runs Terraform Plan
+
+### python pipeline
+
+GitHub Actions Workflow
+
+The project includes automated workflows for:
+
+* Python Linting & Testing
+
+* Runs flake8 and pytest
+
+* Checks for syntax errors and best practices
+
+### terraform pipeline
+
+GitHub Actions Workflow
+
+The project includes automated workflows for:
+
+* Terraform Deployment
+
+* Initializes Terraform
+
+* Validates and applies infrastructure changes
 
 # Docs
 ## Terraform
@@ -59,6 +103,7 @@ creates a step function state machine for the lambda 2 workflow. Currently set u
 #### vars.tf
 directory of variables. Includes python runtime and naming conventions
 
+### rds.tf
 
 
 #### s3_read_function.py
@@ -105,6 +150,12 @@ SQL is used to fetch all the data from all the tables.
 
 ### write_schema_to_processed.py
 * write_schema_to_processed(): * function currently uses hardcoded bucket name for processed s3 bucket. This will likely need changing after each terraform destroy. Function to dynamically fetch bucket based in prefix to be substituted. Pandas is used to create a DataFrame that can then be converted into parquet format. Boto3 then used to write to a file with a dynamic name depending on source_file metadata from respective file in s3 ingestion bucket.
+
+### get_currency_name.py
+Takes currency_id as an argument and gives both currency_name and currency_code back.
+
+
+
 
 
 
