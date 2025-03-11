@@ -152,12 +152,10 @@ FROM sales_order
 ''',
 "dim_staff":'''
 staff_id,first_name,last_name, department.department_name,department.location,email_address
-
 FROM staff
 JOIN department ON staff.department_id = department.department_id
 ''',
 "dim_location":'''
-
 address_id,address_line_1, address_line_2,district,city,postal_code,country,phone
 FROM address
 ''',
