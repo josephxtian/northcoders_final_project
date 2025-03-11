@@ -28,6 +28,10 @@ def get_currency_details(currency_id):
     }
 
     currency_name = currency_dict.get(currency_code, "Unknown currency code")
-    return currency_code, currency_name
+    return {
+        "currency_id": currency_id,
+        "currency_code": currency_code,
+        "currency_name": currency_name
+    }
 
 
