@@ -16,37 +16,58 @@ This project aims to extract data from a tote bag store's database, transform it
 
 * GitHub Actions (CI/CD)
 
-## CI/CD pipeline
+  
+### Automated Environment Setup
 
-To trigger workflows:
+The CI/CD pipeline automates environment configuration:
 
-Push to main → Runs Terraform Apply
+• Virtual environment setup:
 
-Pull request to main → Runs Terraform Plan
+    'python -m venv venv'
+    'source venv/bin/activate'
 
-### python pipeline
+• Dependencies installation:
 
-GitHub Actions Workflow
+    'pip install -r requirements.txt'
 
-The project includes automated workflows for:
+• Environment variable exports:
 
-* Python Linting & Testing
+    'echo "PG_USER=${{ secrets.PG_USER }}" >> $GITHUB_ENV'
 
-* Runs flake8 and pytest
 
-* Checks for syntax errors and best practices
+• To trigger workflows:
 
-### terraform pipeline
+    Push to main → Runs Terraform Apply
 
-GitHub Actions Workflow
+    Pull request to main → Runs Terraform Plan
 
-The project includes automated workflows for:
 
-* Terraform Deployment
+## Python Pipeline (Automated via GitHub Actions)
 
-* Initializes Terraform
+This pipeline ensures code quality and runs tests:
 
-* Validates and applies infrastructure changes
+• Checkout Repository
+
+• Set up Python 3.10
+
+• Install Dependencies (flake8, pytest, moto, etc.)
+
+• Linting with Flake8
+
+• Run Tests with Pytest (including AWS mocking via moto)
+
+## Terraform Pipeline (Automated via GitHub Actions)
+
+• Checkout Repository
+
+• Configure AWS Credentials
+
+• Set Up Terraform
+
+• Initialize Terraform (terraform init)
+
+• Validate Configuration (terraform validate)
+
 
 # Documentation
 ## Terraform
@@ -162,50 +183,6 @@ SQL is used to fetch all the data from all the tables.
 
 ## get_currency_name.py
 Takes currency_id as an argument and gives both currency_name and currency_code back.
-
-### Automated Environment Setup
-
-The CI/CD pipeline automates environment configuration:
-
-• Virtual environment setup:
-
-    'python -m venv venv'
-    'source venv/bin/activate'
-
-• Dependencies installation:
-
-    'pip install -r requirements.txt'
-
-• Environment variable exports:
-
-    'echo "PG_USER=${{ secrets.PG_USER }}" >> $GITHUB_ENV'
-
-## Python Pipeline (Automated via GitHub Actions)
-
-This pipeline ensures code quality and runs tests:
-
-Checkout Repository
-
-Set up Python 3.10
-
-Install Dependencies (flake8, pytest, moto, etc.)
-
-Linting with Flake8
-
-Run Tests with Pytest (including AWS mocking via moto)
-
-Terraform Pipeline (Automated via GitHub Actions)
-
-Checkout Repository
-
-Configure AWS Credentials
-
-Set Up Terraform
-
-Initialize Terraform (terraform init)
-
-Validate Configuration (terraform validate)
-
 
 
 ### Json_data folder
