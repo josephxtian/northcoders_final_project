@@ -19,7 +19,6 @@ def populate_dim_dfs(input_info_df,df_dim_dictionary):
                 print("DATE>>>>",dates[date])
                 for indv_date in dates[date]:
                     formatted_date = extract_date_info_from_dim_date(indv_date)
-                    print(formatted_date)
 
 
         # df.drop_duplicates(inplace = True)
