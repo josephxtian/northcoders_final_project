@@ -1,29 +1,37 @@
 import pandas as pd
 import json
 from pprint import pprint
-from src.dim_date_function import extract_date_info_from_dim_date
 
 # This file contains code using pandas to create dataframes from the raw ingestion bucket.
-# It manipulates the data into dimension table format.
 
-# Create tables using the raw data from the ingestion bucket
-# Returns a dictionary with keys of <table_name>
-# Note for testing this currently retrieves information from local files.
-def create_pandas_raw_tables():
-    info_df_dict = {}
+# NOTICE
+# This function is only used to allow local testing
+# without the need for the s3 get function
+# For actual implementation, use s3_get function
+def load_local_files_for_testing():
+    output_dict = {}
     file_list = ["address", "counterparty", "currency","department", "design","payment", "payment_type", "purchase_order","sales_order", "staff", "transaction"]
     for file in file_list:
         with open(f'json_data/json-{file}.json','r') as f:
             import_dict = json.load(f)
-        
+        output_dict[file] = import_dict
+    return output_dict
+
+# Create tables using the raw data from the ingestion bucket
+# Returns a dictionary with keys of <table_name>
+# Note for testing this currently retrieves information from local files.
+def create_pandas_raw_tables(import_dict):
+    info_df_dict = {}
+
+    for file in import_dict:
         info_df = pd.DataFrame(import_dict[file])
         info_df.set_index(list(info_df)[0],inplace=True)
 
-        info_df_dict[file] = info_df
+    info_df_dict[file] = info_df
+    print(info_df_dict)
     return info_df_dict
 
 # Creates empty dim tables with data types set.
-# The index column is set to the ID value
 # Returns a dictionary with keys of dim_<table_name>
 def create_pandas_empty_dim_tables():
     dim_date_df = pd.DataFrame({
@@ -36,6 +44,7 @@ def create_pandas_empty_dim_tables():
         'month_name': pd.Series(dtype='str'),
         'quarter': pd.Series(dtype='int')
         })
+    # The index column is set to the ID value
     dim_date_df.set_index('date_id',inplace=True)
             
     dim_staff_df = pd.DataFrame({
@@ -98,23 +107,10 @@ def create_pandas_empty_dim_tables():
     }
 
     print(df_dim_dictionary)
+    # return dictionary of dataframes
     return df_dim_dictionary
 
-# Populates dim_tables
-# Takes input of raw ingestion bucket 
-def populate_dim_dfs(input_info_df,df_dim_dictionary):
-    print(input_info_df,"<<<<<input_info_df")
-    for table in df_dim_dictionary:
-        print("TABLE>>>>>",table)
-        if table == 'dim_date':
-            dates = input_info_df["sales_order"][['created_at','last_updated','agreed_delivery_date','agreed_payment_date']]
-            for date in dates:
-                print("DATE>>>>",dates[date])
-                for indv_date in dates[date]:
-                    formatted_date = extract_date_info_from_dim_date(indv_date)
-                    print(formatted_date)
-
 if __name__ == "__main__":
-    info_df_dict = create_pandas_raw_tables()
+    import_files = load_local_files_for_testing()
+    info_df_dict = create_pandas_raw_tables(import_files)
     empty_dim_tables = create_pandas_empty_dim_tables()
-    populate_dim_dfs(info_df_dict,empty_dim_tables)

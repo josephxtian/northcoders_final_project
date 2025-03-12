@@ -4,6 +4,8 @@ from src.dim_date_function import extract_date_info_from_dim_date
 from pprint import pprint
 from src.dimensions_dependents_set_up import load_local_files_for_testing,create_pandas_raw_tables,create_pandas_empty_dim_tables
 
+# This file manipulates the data into dimension table format.
+
 # NOT YET FINISHED - DO NOT TEST YET
 # Populates dim_tables
 # Takes input of raw ingestion bucket
