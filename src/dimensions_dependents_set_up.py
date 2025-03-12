@@ -27,8 +27,8 @@ def create_pandas_raw_tables(import_dict):
         info_df = pd.DataFrame(import_dict[file])
         info_df.set_index(list(info_df)[0],inplace=True)
 
-    info_df_dict[file] = info_df
-    print(info_df_dict)
+        info_df_dict[file] = info_df
+    #print(info_df_dict)
     return info_df_dict
 
 # Creates empty dim tables with data types set.
