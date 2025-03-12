@@ -8,22 +8,28 @@ resource "aws_sfn_state_machine" "lambda_1_2_3" {
     "States": {
       "ReadFromS3": {
         "Type": "Task",
-        "Resource": "arn:aws:states:::lambda:invoke",
+        "Resource": "${aws_lambda_function.lambda_read_from_ingestion_bucket.arn}",
         "Parameters": {
-            "FunctionName": "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}"
+            "Payload":{
+              "input.$": "$"
+            } 
         },
-        "ProcessData": {
+        "Next": "CreateTables"
+      },
+        "CreateTables": {
         "Type": "Task",
-        "Resource": "arn:aws:states:::lambda:invoke",
+        "Resource": "${aws_lambda_function.lambda_create_tables_pandas_and_dim.arn}",
         "Parameters": {
-            "FunctionName": "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}"
-        },
+            "Payload":{
+              "input.$": "$"
+            } 
+        }
 
         "End": true
     }
+}
 })
-
-  depends_on = [aws_lambda_function.lambda_ingestion_to_processed_bucket]
+  depends_on = [aws_lambda_function.lambda_read_from_ingestion_bucket]
 }
 
 resource "aws_iam_role" "step_function_role" {
