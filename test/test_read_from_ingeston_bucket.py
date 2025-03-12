@@ -65,4 +65,5 @@ def test_put_file_with_last_processed():
                             {"id": 18414, "x": "y", "z": "a", "b": 5374, "created_at": "2025-03-07T13:57:09.788000", "last_updated": "2025-03-07T13:57:09.788000"},
                             {"id": 18415, "x": "y", "z": "a", "b": 5375, "created_at": "2025-03-07T13:57:09.788000", "last_updated": "2025-03-07T13:57:09.788000"}                      
                             ]}
-        
+        response =read_files_from_s3(bucket_name,s3_client)
+        assert response == {}
