@@ -165,10 +165,10 @@ dim_date = pd.DataFrame({
     "year": [2024] * 31,
     "month": [1] * 31,
     "day": list(range(1, 32)),
-    "day_of_week": [1, 2, 3, 4, 5, 6, 7] * 4 + [1, 2, 3],  # Repeat for 31 days
+    "day_of_week": [1, 2, 3, 4, 5, 6, 7] * 4 + [1, 2, 3],  
     "day_name": [
         "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-    ] * 4 + ["Monday", "Tuesday", "Wednesday"],  # Repeat for 31 days
+    ] * 4 + ["Monday", "Tuesday", "Wednesday"], 
     "month_name": ["January"] * 31,
     "quarter": [1] * 31
 })
