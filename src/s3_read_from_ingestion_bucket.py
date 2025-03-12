@@ -66,7 +66,17 @@ def read_files_from_s3(bucket_name, client=None):
 
     except Exception as e:
         print(f" Error reading files from {bucket_name}: {e}")
-        return {"error": str(e)}    
+        return {"error": str(e)}  
+
+def lambda_handler(event, context):
+    print(":arrows_counterclockwise: Lambda triggered")
+    try:
+        files_data = read_files_from_s3(bucket_name)
+        if "error" in files_data:
+            return {"status": "error", "message": files_data["error"]}
+        return {"status": "success", "data": files_data}
+    except Exception as e:
+        return {"status": "error", "message": e}  
 
 # if __name__ == "__main__":
     

@@ -13,7 +13,9 @@ data "aws_iam_policy_document" "lambda_assume_role" {
       type        = "Service"
       identifiers = ["lambda.amazonaws.com","s3.amazonaws.com","scheduler.amazonaws.com","states.amazonaws.com"]
     }
-    actions = ["sts:AssumeRole"]
+    actions = [
+      "sts:AssumeRole"
+      ]
   }
 }
 
@@ -217,8 +219,9 @@ data "aws_iam_policy_document" "iam_step_function_execution_doc" {
       "logs:PutLogEvents"
     ]
     resources = [
-      "${aws_lambda_function.lambda_ingestion_to_processed_bucket.arn}",
-      "${aws_cloudwatch_log_group.step_function_logs.arn}"
+      "${aws_lambda_function.lambda_read_from_ingestion_bucket.arn}",
+      "${aws_cloudwatch_log_group.step_function_logs.arn}",
+      "${aws_lambda_function.lambda_create_tables_pandas_and_dim.arn}"
     ]
   }
 }
@@ -242,4 +245,9 @@ resource "aws_iam_role_policy_attachment" "iam_event_step_function_attachment" {
 resource "aws_iam_role_policy_attachment" "step_function_cloudwatch_attachment" {
   role       = aws_iam_role.step_function_execution_role.name
   policy_arn = aws_iam_policy.iam_cloudwatch_log.arn
+}
+
+resource "aws_iam_role_policy_attachment" "step_function_lambda_invoke_attachment" {
+  role       = aws_iam_role.step_function_execution_role.name
+  policy_arn = aws_iam_policy.iam_step_function_policy.arn
 }
