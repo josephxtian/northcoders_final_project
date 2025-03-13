@@ -226,9 +226,26 @@ data "aws_iam_policy_document" "iam_step_function_execution_doc" {
   }
 }
 
+resource "aws_iam_policy" "step_function_lambda_invoke" {
+  name = "StepFunctionLambdaInvoke" 
+  description = "Allows Step Function to invoke Lambda" 
+  policy = jsonencode({ 
+    Version = "2012-10-17" 
+  Statement = [
+     { Effect = "Allow" 
+     Action = "lambda:InvokeFunction" 
+     Resource = "arn:aws:lambda:eu-west-2:122610499526:function:read-from-ingestion-function" } 
+     ] }) 
+}
+
 resource "aws_iam_role" "step_function_execution_role" {
   name_prefix         = "role-step-function-execution"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_lambda_invoke" {
+  role = aws_iam_role.step_function_execution_role.name
+  policy_arn = aws_iam_policy.step_function_lambda_invoke.arn
 }
 
 resource "aws_iam_policy" "iam_step_function_policy" {
