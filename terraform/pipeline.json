@@ -1,30 +1,26 @@
 {
-    "Comment": "Lambda 2 flow state machine",
-    "StartAt": "Lambda Invoke",
-    "States": {
-      "Lambda Invoke": {
-        "Type": "Task",
-        "Resource": "${resource}",
-        "Output": "{% $states.result.Payload %}",
-        "Arguments": {
-          "FunctionName": "arn:aws:lambda:{aws_region}:{aws_account_number}:function:{function_name}:$LATEST"
-        },
-        "Retry": [
-          {
-            "ErrorEquals": [
-              "Lambda.ServiceException",
-              "Lambda.AWSLambdaException",
-              "Lambda.SdkClientException",
-              "Lambda.TooManyRequestsException"
-            ],
-            "IntervalSeconds": 1,
-            "MaxAttempts": 3,
-            "BackoffRate": 2,
-            "JitterStrategy": "FULL"
-          }
-        ],
-        "End": true
-      }
+  "Comment": "State Machine to Process Data from Ingestion to Process Bucket",
+  "StartAt": "ReadFromS3",
+  "States": {
+    "CreateTables": {
+      "End": true,
+      "Parameters": {
+        "Payload": {
+          "input.$": "$"
+        }
+      },
+      "Resource": "arn:aws:lambda:eu-west-2:122610499526:function:create_tables_pandas_and_dim-function",
+      "Type": "Task"
     },
-    "QueryLanguage": "JSONata"
+    "ReadFromS3": {
+      "Next": "CreateTables",
+      "Parameters": {
+        "Payload": {
+          "input.$": "$"
+        }
+      },
+      "Resource": "arn:aws:lambda:eu-west-2:122610499526:function:read-from-ingestion-function",
+      "Type": "Task"
+    }
+  }
 }
