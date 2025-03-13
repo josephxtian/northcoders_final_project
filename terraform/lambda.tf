@@ -55,6 +55,7 @@ resource "aws_lambda_function" "lambda_processed_bucket_to_warehouse" {
   role          = aws_iam_role.lambda_3_role.arn
   handler       = "index.lambda_handler"
   runtime       = var.python_runtime
+  layers = [aws_lambda_layer_version.layer_write_to_warehouse.arn]
   timeout = 15
 }
 
