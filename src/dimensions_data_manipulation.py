@@ -1,9 +1,10 @@
 import pandas as pd
-import json
 from src.dim_date_function import extract_date_info_from_dim_date
 from pprint import pprint
 from src.dimensions_dependents_set_up import load_local_files_for_testing,create_pandas_raw_tables,create_pandas_empty_dim_tables
 from src.get_currency_name import add_currency_names
+from src.s3_read_from_ingestion_bucket import read_files_from_s3
+from utils.get_bucket import get_bucket_name
 
 # This file manipulates the data into dimension table format.
 
@@ -26,7 +27,7 @@ def populate_dim_dfs(input_info_df,df_dim_dictionary):
     for table_name, dataframe in df_dim_dictionary.items():
         print("Processing TABLE:", table_name)
         if table_name == 'dim_date':
-            date_columns = ["created_at", "last_updated", "agreed_delivery_date", "agreed_payment_date"]
+            date_columns = ["created_at"] #, "last_updated", "agreed_delivery_date", "agreed_payment_date"
             all_dates = set()
                 # print("DATE>>>>",dates[date])
             for col in date_columns:
@@ -130,7 +131,8 @@ def populate_dim_dfs(input_info_df,df_dim_dictionary):
     return filled_dim_tables
 
 if __name__ == "__main__":
-    import_files = load_local_files_for_testing()
+    bucket_name = get_bucket_name("ingestion-bucket")
+    import_files = read_files_from_s3(bucket_name)
     info_df_dict = create_pandas_raw_tables(import_files)
     empty_dim_tables = create_pandas_empty_dim_tables()
     populate_dim_dfs(info_df_dict,empty_dim_tables)

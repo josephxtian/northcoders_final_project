@@ -10,7 +10,7 @@ from pprint import pprint
 # For actual implementation, use s3_get function
 def load_local_files_for_testing():
     output_dict = {}
-    file_list = ["address", "counterparty", "currency","department", "design","payment", "payment_type", "purchase_order","sales_order", "staff", "transaction"]
+    file_list = ["address", "counterparty", "currency","department", "design","payment","sales_order", "staff"]
     for file in file_list:
         with open(f'json_data/json-{file}.json','r') as f:
             import_dict = json.load(f)[file]

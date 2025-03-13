@@ -6,7 +6,8 @@ from pprint import pprint
 from src.dimensions_dependents_set_up import load_local_files_for_testing,create_pandas_raw_tables,create_pandas_empty_dim_tables
 from src.get_currency_name import add_currency_names
 from src.dim_date_function import extract_date_info_from_dim_date
-from src.dimensions_data_manipulation import populate_dim_dfs_2
+from src.dimensions_data_manipulation import populate_dim_dfs
+from src.s3_read_from_ingestion_bucket import read_files_from_s3
 
 """
 This function is a new alternative for the fact_sales_order data. We originally tried to do this using sql and local postgres databases but realised this wouldn't work in Lambda
@@ -182,6 +183,8 @@ def transform_fact_data_2(raw_data, dim_tables_dict):
         df = df.merge(dim_date, left_on="agreed_payment_date", right_on="date_id", how="left", suffixes=("", "_payment"))
         df = df.merge(dim_date, left_on="agreed_delivery_date", right_on="date_id", how="left", suffixes=("", "_delivery"))
 
+        print(df.columns)
+
         # Merge with other dimension tables
         df = df.merge(dim_staff, left_on="sales_staff_id", right_on="staff_id", how="left")
         df = df.merge(dim_counterparty, left_on="counterparty_id", right_on="counterparty_id", how="left")
@@ -226,11 +229,13 @@ def transform_fact_data_2(raw_data, dim_tables_dict):
 
 
 if __name__ == "__main__":
+    # bucket_name = get_bucket_name("ingestion-bucket")
+    # import_files = read_files_from_s3(bucket_name)
     import_files = load_local_files_for_testing()
     info_df_dict = create_pandas_raw_tables(import_files)
     empty_dim_tables = create_pandas_empty_dim_tables()
-    dim_dataframes = populate_dim_dfs_2(info_df_dict,empty_dim_tables)
-    transform_fact_data(import_files, dim_dataframes)
+    dim_dataframes = populate_dim_dfs(info_df_dict,empty_dim_tables)
+    transform_fact_data_2(import_files, dim_dataframes)
 
 
 
