@@ -258,7 +258,7 @@ def transform_fact_data(engine,raw_data):
             with engine.connect() as conn:
                 result = conn.execute(transformation_query)
                 print(result, "<<<<< This is the result")
-                fetched_data = result.mappings().all()  # Convert result to a list
+                fetched_data = result.mappings().all()  # Converts result to a list
                 print(fetched_data)
                 logging.info(f"Transformed rows count: {len(fetched_data)}")
                 
