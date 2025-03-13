@@ -1,0 +1,12 @@
+{
+    "Comment": "State Machine to Process Data from Ingestion to Process Bucket",
+    "StartAt": "ReadFromS3",
+    "States": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Parameters": {
+            "FunctionName": "${ProcessingLambda}"
+        },
+        "End": true
+    }
+}

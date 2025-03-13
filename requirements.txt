@@ -9,6 +9,8 @@ python-dotenv
 pandas
 pyarrow
 psycopg2
+sqlalchemy
+pip-audit
 
 
 

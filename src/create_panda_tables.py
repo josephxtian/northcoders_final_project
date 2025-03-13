@@ -140,6 +140,22 @@ staging_tables(db_connection, db_tables)
 create_dim_tables(db_connection)
 
 
+def lambda_handler(event, context):
+    print("Data read from bucket")
+    try:
+        dim_table = create_dim_tables()
+        pandas_table = create_pandas_table()
+        if "error" in dim_table:
+            return {"status": "error", "message": dim_table["error"]}
+        if "error" in pandas_table:
+            return {"status": "error", "message": pandas_table["error"]}
+        return {"status": "success", "data": dim_table and pandas_table}
+    except Exception as e:
+        return {"status": "error", "message": e}  
+    
+
+    
+
 
    
 

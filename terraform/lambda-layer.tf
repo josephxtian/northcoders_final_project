@@ -20,4 +20,15 @@ resource "aws_lambda_layer_version_permission" "lambda_layer_permission" {
 }
 
 
+resource "aws_lambda_layer_version" "layer_write_to_warehouse" {
+  layer_name = "lambda_layer_to_warehouse"
+  filename = "${path.module}/../py_packages/requirements-package.zip"
+}
 
+resource "aws_lambda_layer_version_permission" "lambda_layer_write_to_warehouse_permission" {
+  layer_name     = aws_lambda_layer_version.layer_write_to_warehouse.layer_name
+  version_number = aws_lambda_layer_version.layer_write_to_warehouse.version
+  principal      = "*"
+  action         = "lambda:GetLayerVersion"
+  statement_id   = "test-warehouse-layer"
+}
