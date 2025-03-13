@@ -19,12 +19,6 @@ resource "aws_lambda_layer_version_permission" "lambda_layer_permission" {
   statement_id   = "test-pg8000-layer"
 }
 
-data "archive_file" "lambda-layer_warehouse" {
-  type = "zip"
-  source_dir = "${path.module}/../py_packages/python/"
-  output_path = "${path.module}/../requirements-package.zip"
-}
-
 
 resource "aws_lambda_layer_version" "layer_write_to_warehouse" {
   layer_name = "lambda_layer_to_warehouse"
