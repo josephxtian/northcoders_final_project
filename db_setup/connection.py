@@ -7,7 +7,7 @@ env_path = '.env.test' if os.environ.get("TESTING") == "True" else '.env.develop
 load_dotenv(dotenv_path = env_path, override = True)
 
 
-def connect_to_db():
+def connect_db():
     return Connection(
         user=os.getenv("PG_USER"),
         password=os.getenv("PG_PASSWORD"),
