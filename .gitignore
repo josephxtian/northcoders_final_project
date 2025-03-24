@@ -1,8 +1,5 @@
-/venv
-**/.vscode/
-.env
+venv
+.env*
 **/.terraform
-/python_zips
 **/__pycache__
-__pycache__/
 
