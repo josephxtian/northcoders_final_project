@@ -1,4 +1,4 @@
-from src.connection import connect_to_db, close_db_connection
+from db_setup.connection import connect_to_db, close_db_connection
 import pytest
 from pg8000.native import Connection
 
