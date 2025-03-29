@@ -1,77 +1,33 @@
-#################################################################################
-#
-# Makefile to build the project
-#
-#################################################################################
+# THINGS THIS SHOULD DO
+# 1. set up venv
+# 2. install requirements.txt
+# 3. set up db
+# 4. seed db
 
-PROJECT_NAME = Northcoders_final_project_25
-REGION = eu-west-2
-PYTHON_INTERPRETER = python
 WD=$(shell pwd)
-PYTHONPATH=${WD}
-SHELL := /bin/bash
-PIP:=pip
+TEST_ENV_FILE = .env.test
+DEV_ENV_FILE = .env.development
 
-## Create python interpreter environment.
+# Load environment variables from .env file
+include .env.test
+export $(shell sed 's/=.*//' .env.test)
+
+all: install-requirements setup-db
+
 create-environment:
-	@echo ">>> About to create environment: $(PROJECT_NAME)..."
-	@echo ">>> check python3 version"
-	( \
-		$(PYTHON_INTERPRETER) --version; \
-	)
-	@echo ">>> Setting up VirtualEnv."
-	( \
-	    $(PIP) install -q virtualenv virtualenvwrapper; \
-	    virtualenv venv --python=$(PYTHON_INTERPRETER); \
-	)
+	@echo ">>> Setting up python venv as 'venv'"
+	python -m venv venv;
+	@echo ">>> Activating venv and setting working directory"
+	. venv/bin/activate && export PYTHONPATH=$(WD)
 
-# Define utility variable to help calling Python from the virtual environment
-ACTIVATE_ENV := source venv/bin/activate
-
-# Execute python related functionalities from within the project's environment
 define execute_in_env
-	$(ACTIVATE_ENV) && $1
+	(. venv/bin/activate) && $1
 endef
 
-## Build the environment requirements
-requirements: create-environment
-	$(call execute_in_env, $(PIP) install -r ./requirements.txt)
+install-requirements: create-environment
+	@echo ">>> Installing requirements and setting up pytest"
+	$(call execute_in_env, pip install -r ./requirements.txt && pip install pytest && export PYTHONPATH=$(WD) pytest)
 
-################################################################################################################
-# Set Up
-## Install bandit
-bandit:
-	$(call execute_in_env, $(PIP) install bandit)
-
-## Install black
-black:
-	$(call execute_in_env, $(PIP) install black)
-
-## Install coverage
-coverage:
-	$(call execute_in_env, $(PIP) install coverage)
-
-## Set up requirements (bandit, black, coverage and requirements)
-dev-setup: bandit black coverage
-	$(call execute_in_env, $(PIP) install -r ./requirements.txt)
-
-# Build / Run
-
-## Run the security test (bandit)
-security-test:
-	$(call execute_in_env, bandit -lll */*.py *c/*/*.py)
-
-## Run the black code check
-run-black:
-	$(call execute_in_env, black  ./src/*.py ./test/*.py)
-
-## Run the unit tests
-unit-test:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest -vv)
-
-## Run the coverage check
-check-coverage:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
-
-## Run all checks
-run-checks: security-test run-black unit-test check-coverage
+setup-db:
+	@echo ">>> Setting up seed database"
+	$(call execute_in_env, PGPASSWORD=$(PG_PASSWORD) psql -h $(PG_HOST) -U $(PG_USER) -d postgres -p $(PG_PORT) -f db_setup/setup_dbs.sql)
