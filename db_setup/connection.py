@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import os
 
 env_path = '.env.test' if os.environ.get("TESTING") == "True" else '.env.development'
-
 load_dotenv(dotenv_path = env_path, override = True)
 
 

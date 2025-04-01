@@ -1,6 +1,6 @@
 from db_setup.connection import connect_db, close_db
 import pytest
-from pg8000 import Connection
+from pg8000.native import Connection
 
 
 @pytest.fixture()
@@ -11,7 +11,7 @@ def db():
 
 
 def test_connects_to_database():
-    conn = connect_db()
-    assert isinstance(conn, Connection)
-    close_db(conn)
+    db = connect_db()
+    assert isinstance(db, Connection)
+    close_db(db)
 
