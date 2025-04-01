@@ -4,7 +4,7 @@ from pg8000.native import identifier, literal
 
 # This file seeds the test database from json files in json_data/test_data/
 
-def seed_db(env='test'):
+def seed_db(env='dev'):
     print("\U0001FAB4", "Seeding Database...")
     db = connect_db()
     try:
@@ -54,6 +54,7 @@ def seed_db(env='test'):
                         WHERE {identifier(row_id_header)} = {literal(row[row_id_header])}
                         ''')
                 row_count += 1
+                print(row_count)
             return_statement[f'{table_name}_row_count'] = row_count
             print(
             f'\U0001F4BE Successfully seeded {row_count} rows to {table_name} table in the database. \U0001F44D')
