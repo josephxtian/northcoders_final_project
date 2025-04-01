@@ -11,7 +11,7 @@ def seed_db(env='test'):
         # drop all existing tables
         table_names = ["address","counterparty","currency","department","design","payment_type","payment","purchase_order","sales_order","staff","transaction"]
         for table_name in table_names:
-            db.run("DROP TABLE IF EXISTS :table_name",table_name=table_name)
+            db.run(f"DROP TABLE IF EXISTS {identifier(table_name)}")
             print(f"dropped {table_name}")
 
         return_statement = {}
@@ -31,12 +31,12 @@ def seed_db(env='test'):
                 else:
                     column_names_with_types.append(name + " text")
                 # create SQL syntaxed string
-                headers_string = str(tuple(column_names_with_types)).replace("'","")
+            headers_string = str(tuple(column_names_with_types)).replace("'","")
                 # create table and feedback to user
-                db.run(f'''
-                    CREATE TABLE IF NOT EXISTS {identifier(table_name)} {headers_string};
-                    ''')
-                print(f"{table_name} table created, with columns {headers_string}")
+            db.run(f'''
+                CREATE TABLE IF NOT EXISTS {identifier(table_name)} {headers_string};
+                ''')
+            print(f"{table_name} table created, with columns {headers_string}")
 
             # populate table with data
             row_count = 0
