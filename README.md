@@ -136,7 +136,7 @@ Contains
 ## Key Scripts 
 
 #### s3_read_function.py 
-* Reads data from the ingress bucket and sets as a variable for use in star schema. Currently a test-bucket because lambda 1 is not finalised
+* Reads data from the ingress bucket and sets as a variable for use in star schema.
 
 #### password_manager.py - 
 * Retrieves database credentials from AWS Secrets Manager and stores as a local variable to be used.
